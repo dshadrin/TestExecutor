@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>TestExecutor</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../res/TestExecutor.qrc">
+    <normaloff>:/common/test-passed.png</normaloff>:/common/test-passed.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -169,13 +173,17 @@
    </property>
   </action>
   <action name="actionAbout_Qt">
+   <property name="icon">
+    <iconset resource="../res/TestExecutor.qrc">
+     <normaloff>:/common/TestExecutor.ico</normaloff>:/common/TestExecutor.ico</iconset>
+   </property>
    <property name="text">
-    <string>About Qt</string>
+    <string>About Qt ...</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>About ...</string>
    </property>
   </action>
   <action name="actionHelp">
@@ -185,7 +193,7 @@
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset resource="res/TestExecutor.qrc">
+    <iconset resource="../res/TestExecutor.qrc">
      <normaloff>:/common/quit.png</normaloff>:/common/quit.png</iconset>
    </property>
    <property name="text">
@@ -198,7 +206,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="res/TestExecutor.qrc"/>
+  <include location="../res/TestExecutor.qrc"/>
  </resources>
  <connections>
   <connection>

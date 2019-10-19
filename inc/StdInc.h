@@ -36,7 +36,7 @@
 
 #if ((defined _MSC_VER) && (_MSC_VER >= 1800))
 #include <filesystem>
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 #else
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;

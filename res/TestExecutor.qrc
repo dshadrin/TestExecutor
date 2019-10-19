@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="common">
+    <file>test-passed.png</file>
+    <file>TestExecutor.ico</file>
     <file>quit.png</file>
   </qresource>
 </RCC>
