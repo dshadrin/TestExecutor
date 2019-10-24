@@ -2,10 +2,9 @@
 #include <QSettings>
 #include <QtWidgets>
 
-extern QString confName;
-
-TestExecutor::TestExecutor(QWidget *parent)
-    : QMainWindow(parent)
+TestExecutor::TestExecutor(QWidget *parent) :
+    QMainWindow(parent),
+    m_config(this)
 {
     ui.setupUi(this);
     readSettings();
@@ -20,14 +19,12 @@ void TestExecutor::closeEvent( QCloseEvent* event )
 
 void TestExecutor::writeSettings()
 {
-    QSettings settings( confName, QSettings::IniFormat, Q_NULLPTR );
-    settings.setValue( "geometry", saveGeometry() );
+    m_config.GetSettings().setValue( "geometry", saveGeometry() );
 }
 
 void TestExecutor::readSettings()
 {
-    QSettings settings( confName, QSettings::IniFormat, Q_NULLPTR );
-    const QByteArray geometry = settings.value( "geometry", QByteArray() ).toByteArray();
+    const QByteArray geometry = m_config.GetSettings().value( "geometry", QByteArray() ).toByteArray();
     if ( geometry.isEmpty() )
     {
         const QRect availableGeometry = QApplication::desktop()->availableGeometry( this );

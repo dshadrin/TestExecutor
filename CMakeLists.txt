@@ -63,11 +63,13 @@ find_package(Qt5 COMPONENTS Gui Core Widgets REQUIRED)
 set(SOURCES
   src/main.cpp
   src/${PROJECT_NAME}.cpp
+  src/Config.cpp
 )
 
 set(HEADERS
   inc/StdInc.h
   inc/${PROJECT_NAME}.h
+  inc/Config.h
 )
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 
