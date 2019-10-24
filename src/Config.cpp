@@ -15,7 +15,7 @@ CConfig::CConfig(QWidget* parent) :
 {
     if (fs::exists(m_jsonConfigPath))
     {
-        bpt::read_json(m_jsonConfigPath, m_pt, std::locale("ru_RU"));
+        bpt::read_json(m_jsonConfigPath, m_pt, GetLocale() );
     }
     else
     {
@@ -24,9 +24,33 @@ CConfig::CConfig(QWidget* parent) :
         m_pt.add_child(KEY_TEST_APP, p);
         WriteJsonConfig();
     }
+
+    ui.setupUi( this );
+    setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
+    setAttribute( Qt::WA_CustomWhatsThis );
 }
 
-void CConfig::WriteJsonConfig() const
+CConfig::~CConfig()
 {
-    bpt::write_json(m_jsonConfigPath, m_pt, std::locale("ru_RU"), true);
+    m_settings.sync();
+}
+
+std::locale CConfig::GetLocale()
+{
+    if ( m_localeString.empty() )
+    {
+        QString locStr = GetSettings().value( "locale", "" ).toString();
+        if ( locStr.isEmpty() )
+        {
+            locStr = "ru_RU";
+            GetSettings().setValue( "locale", locStr );
+        }
+        m_localeString = locStr.toStdString();
+    }
+    return std::locale( m_localeString );
+}
+
+void CConfig::WriteJsonConfig()
+{
+    bpt::write_json(m_jsonConfigPath, m_pt, GetLocale(), true);
 }

@@ -2,6 +2,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+#include "ui_SessionConfig.h"
 #include <QDialog>
 #include <QSettings>
 #include <boost/property_tree/ptree.hpp>
@@ -17,14 +18,19 @@ class CConfig : public QDialog
 
 public:
     CConfig(QWidget* parent = Q_NULLPTR);
+    ~CConfig();
 
     QSettings& GetSettings() { return m_settings; }
 
 private:
-    void WriteJsonConfig() const;
+    void WriteJsonConfig();
+    std::locale GetLocale();
 
 private:
     QSettings m_settings;
     std::string m_jsonConfigPath;
+    std::string m_localeString;
     boost::property_tree::ptree m_pt;
+
+    Ui::Dialog ui;
 };

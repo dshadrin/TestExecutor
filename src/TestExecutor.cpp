@@ -1,4 +1,5 @@
 #include "TestExecutor.h"
+#include "console.h"
 #include <QSettings>
 #include <QtWidgets>
 
@@ -7,6 +8,7 @@ TestExecutor::TestExecutor(QWidget *parent) :
     m_config(this)
 {
     ui.setupUi(this);
+    ui.tabWidget->addTab( new Console( this ), "Console" );
     readSettings();
     QObject::connect( ui.actionAbout_Qt, SIGNAL( triggered() ), qApp, SLOT( aboutQt() ) );
 }
