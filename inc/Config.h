@@ -11,6 +11,8 @@
 const char KEY_TEST_APP[]{ "test-application" };
 const char KEY_PATH[]{ "path" };
 
+class CConfig;
+
 //////////////////////////////////////////////////////////////////////////
 class CConfig : public QDialog
 {
@@ -25,6 +27,8 @@ public:
 private:
     void WriteJsonConfig();
     std::locale GetLocale();
+
+    void ConfigureDialog();
 
 private:
     QSettings m_settings;

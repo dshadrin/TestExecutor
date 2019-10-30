@@ -1,5 +1,9 @@
 <RCC>
   <qresource prefix="common">
+    <file>editor.png</file>
+    <file>icons8-plus-32.png</file>
+    <file>icons8-minus-32.png</file>
+    <file>icons8-edit-property-32.png</file>
     <file>test-passed.png</file>
     <file>TestExecutor.ico</file>
     <file>quit.png</file>

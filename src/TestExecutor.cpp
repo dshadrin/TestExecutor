@@ -11,6 +11,11 @@ TestExecutor::TestExecutor(QWidget *parent) :
     ui.tabWidget->addTab( new Console( this ), "Console" );
     readSettings();
     QObject::connect( ui.actionAbout_Qt, SIGNAL( triggered() ), qApp, SLOT( aboutQt() ) );
+    QObject::connect( ui.actionOptions, SIGNAL( triggered() ), this, SLOT( OptionsDialog() ) );
+
+    setWindowTitle( tr( "MTF test executor" ) );
+    setWindowIcon( QIcon( ":/TestExecutor/common/editor.png" ) );
+    setUnifiedTitleAndToolBarOnMac( true );
 }
 
 void TestExecutor::closeEvent( QCloseEvent* event )
@@ -38,4 +43,9 @@ void TestExecutor::readSettings()
     {
         restoreGeometry( geometry );
     }
+}
+
+void TestExecutor::OptionsDialog()
+{
+    m_config.exec();
 }

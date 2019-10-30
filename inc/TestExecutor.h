@@ -20,6 +20,9 @@ private:
     void writeSettings();
     void readSettings();
 
+private Q_SLOTS:
+    void OptionsDialog();
+
 private:
     Ui::TestExecutorClass ui;
     CConfig m_config;

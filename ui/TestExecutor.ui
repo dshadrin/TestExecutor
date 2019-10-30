@@ -103,6 +103,8 @@
     <addaction name="actionRun"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
+    <addaction name="actionOptions"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuTests">
@@ -201,6 +203,11 @@
    </property>
    <property name="shortcut">
     <string>Esc</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options ...</string>
    </property>
   </action>
  </widget>

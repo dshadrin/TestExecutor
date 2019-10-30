@@ -25,9 +25,7 @@ CConfig::CConfig(QWidget* parent) :
         WriteJsonConfig();
     }
 
-    ui.setupUi( this );
-    setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
-    setAttribute( Qt::WA_CustomWhatsThis );
+    ConfigureDialog();
 }
 
 CConfig::~CConfig()
@@ -53,4 +51,27 @@ std::locale CConfig::GetLocale()
 void CConfig::WriteJsonConfig()
 {
     bpt::write_json(m_jsonConfigPath, m_pt, GetLocale(), true);
+}
+
+void CConfig::ConfigureDialog()
+{
+    ui.setupUi( this );
+    setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
+    setAttribute( Qt::WA_CustomWhatsThis );
+
+    QFont headerFont( "Times", 10, QFont::Bold );
+
+    QTableWidgetItem* nameHeaderItem = new QTableWidgetItem( tr( "Name" ) );
+    //nameHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
+    nameHeaderItem->setTextAlignment( Qt::AlignLeft );
+    nameHeaderItem->setFont( headerFont );
+    ui.envTableWidget->setHorizontalHeaderItem( 0, nameHeaderItem );
+    ui.paramTableWidget->setHorizontalHeaderItem( 0, nameHeaderItem );
+
+    QTableWidgetItem* valHeaderItem = new QTableWidgetItem( tr( "Value" ) );
+    //valHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
+    valHeaderItem->setTextAlignment( Qt::AlignLeft );
+    valHeaderItem->setFont( headerFont );
+    ui.envTableWidget->setHorizontalHeaderItem( 1, valHeaderItem );
+    ui.paramTableWidget->setHorizontalHeaderItem( 1, valHeaderItem );
 }
