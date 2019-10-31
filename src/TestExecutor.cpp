@@ -4,8 +4,8 @@
 #include <QtWidgets>
 
 TestExecutor::TestExecutor(QWidget *parent) :
-    QMainWindow(parent),
-    m_config(this)
+    QMainWindow( parent ),
+    m_config(Q_NULLPTR)
 {
     ui.setupUi(this);
     ui.tabWidget->addTab( new Console( this ), "Console" );

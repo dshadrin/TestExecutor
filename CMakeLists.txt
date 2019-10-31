@@ -65,6 +65,7 @@ set(SOURCES
   src/${PROJECT_NAME}.cpp
   src/Config.cpp
   src/console.cpp
+  src/VarEditDialog.cpp
 )
 
 set(HEADERS
@@ -72,6 +73,7 @@ set(HEADERS
   inc/${PROJECT_NAME}.h
   inc/Config.h
   inc/console.h
+  inc/VarEditDialog.h
 )
 include_directories(${CMAKE_SOURCE_DIR}/inc)
 
@@ -81,7 +83,8 @@ set(RESOURCES
 
 set(FORMS
   ui/${PROJECT_NAME}.ui
-  ui/SessionConfig.ui 
+  ui/SessionConfig.ui
+  ui/VarEdit.ui
 )
 
 qt5_add_resources(RESOURCES_R ${RESOURCES})

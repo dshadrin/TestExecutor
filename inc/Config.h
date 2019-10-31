@@ -30,11 +30,14 @@ private:
 
     void ConfigureDialog();
 
+private Q_SLOTS:
+    void addEnironVariable();
+
 private:
     QSettings m_settings;
     std::string m_jsonConfigPath;
     std::string m_localeString;
     boost::property_tree::ptree m_pt;
 
-    Ui::Dialog ui;
+    Ui::Dialog uiConf;
 };

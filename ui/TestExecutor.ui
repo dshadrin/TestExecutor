@@ -217,7 +217,7 @@
  </resources>
  <connections>
   <connection>
-   <sender>actionQuit</sender>
+   <sender>actionOptions</sender>
    <signal>triggered()</signal>
    <receiver>TestExecutorClass</receiver>
    <slot>close()</slot>
