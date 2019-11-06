@@ -215,22 +215,5 @@
  <resources>
   <include location="../res/TestExecutor.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>actionOptions</sender>
-   <signal>triggered()</signal>
-   <receiver>TestExecutorClass</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>432</x>
-     <y>301</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

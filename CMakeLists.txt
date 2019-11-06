@@ -64,6 +64,7 @@ set(SOURCES
   src/main.cpp
   src/${PROJECT_NAME}.cpp
   src/Config.cpp
+  src/ConfigDialog.cpp
   src/console.cpp
   src/VarEditDialog.cpp
 )
@@ -72,6 +73,7 @@ set(HEADERS
   inc/StdInc.h
   inc/${PROJECT_NAME}.h
   inc/Config.h
+  inc/ConfigDialog.h
   inc/console.h
   inc/VarEditDialog.h
 )

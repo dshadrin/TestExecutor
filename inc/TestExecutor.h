@@ -11,7 +11,7 @@ class TestExecutor : public QMainWindow
 public:
     TestExecutor(QWidget *parent = Q_NULLPTR);
 
-    CConfig& GetConfig() { return m_config; }
+    CConfig* GetConfig() { return m_config; }
 
 protected:
     void closeEvent( QCloseEvent* event ) override;
@@ -25,5 +25,5 @@ private Q_SLOTS:
 
 private:
     Ui::TestExecutorClass ui;
-    CConfig m_config;
+    CConfig* m_config;
 };

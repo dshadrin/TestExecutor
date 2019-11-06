@@ -1,11 +1,12 @@
 #include "TestExecutor.h"
 #include "console.h"
+#include "ConfigDialog.h"
 #include <QSettings>
 #include <QtWidgets>
 
 TestExecutor::TestExecutor(QWidget *parent) :
     QMainWindow( parent ),
-    m_config(Q_NULLPTR)
+    m_config(new CConfig(this))
 {
     ui.setupUi(this);
     ui.tabWidget->addTab( new Console( this ), "Console" );
@@ -26,12 +27,12 @@ void TestExecutor::closeEvent( QCloseEvent* event )
 
 void TestExecutor::writeSettings()
 {
-    m_config.GetSettings().setValue( "geometry", saveGeometry() );
+    m_config->GetSettings().setValue( "geometry", saveGeometry() );
 }
 
 void TestExecutor::readSettings()
 {
-    const QByteArray geometry = m_config.GetSettings().value( "geometry", QByteArray() ).toByteArray();
+    const QByteArray geometry = m_config->GetSettings().value( "geometry", QByteArray() ).toByteArray();
     if ( geometry.isEmpty() )
     {
         const QRect availableGeometry = QApplication::desktop()->availableGeometry( this );
@@ -47,5 +48,12 @@ void TestExecutor::readSettings()
 
 void TestExecutor::OptionsDialog()
 {
-    m_config.exec();
+    QScopedPointer<CConfigDialog> dlg( new CConfigDialog(Q_NULLPTR ) );
+    if ( dlg )
+    {
+        if ( dlg->exec() == QDialog::Accepted )
+        {
+            // save input
+        }
+    }
 }

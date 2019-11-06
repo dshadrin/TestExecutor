@@ -1,6 +1,5 @@
 #include "StdInc.h"
 #include "Config.h"
-#include "VarEditDialog.h"
 #include "boost/property_tree/json_parser.hpp"
 
 //////////////////////////////////////////////////////////////////////////
@@ -10,7 +9,8 @@ namespace bpt = boost::property_tree;
 extern QString g_QConfigName;
 
 //////////////////////////////////////////////////////////////////////////
-CConfig::CConfig(QWidget* parent) :
+CConfig::CConfig( QObject* parent ) :
+    QObject(parent),
     m_settings(g_QConfigName, QSettings::IniFormat, Q_NULLPTR),
     m_jsonConfigPath((fs::current_path() / fs::path(g_QConfigName.toStdString()).filename().replace_extension(".json")).string())
 {
@@ -25,8 +25,6 @@ CConfig::CConfig(QWidget* parent) :
         m_pt.add_child(KEY_TEST_APP, p);
         WriteJsonConfig();
     }
-
-    ConfigureDialog();
 }
 
 CConfig::~CConfig()
@@ -52,41 +50,4 @@ std::locale CConfig::GetLocale()
 void CConfig::WriteJsonConfig()
 {
     bpt::write_json(m_jsonConfigPath, m_pt, GetLocale(), true);
-}
-
-void CConfig::ConfigureDialog()
-{
-    uiConf.setupUi( this );
-    setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
-    setAttribute( Qt::WA_CustomWhatsThis );
-
-    QFont headerFont( "Times", 10, QFont::Bold );
-
-    QTableWidgetItem* nameHeaderItem = new QTableWidgetItem( tr( "Name" ) );
-    //nameHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
-    nameHeaderItem->setTextAlignment( Qt::AlignLeft );
-    nameHeaderItem->setFont( headerFont );
-    uiConf.envTableWidget->setHorizontalHeaderItem( 0, nameHeaderItem );
-    uiConf.paramTableWidget->setHorizontalHeaderItem( 0, nameHeaderItem );
-
-    QTableWidgetItem* valHeaderItem = new QTableWidgetItem( tr( "Value" ) );
-    //valHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
-    valHeaderItem->setTextAlignment( Qt::AlignLeft );
-    valHeaderItem->setFont( headerFont );
-    uiConf.envTableWidget->setHorizontalHeaderItem( 1, valHeaderItem );
-    uiConf.paramTableWidget->setHorizontalHeaderItem( 1, valHeaderItem );
-
-    QObject::connect( uiConf.addEnvButton, SIGNAL( clicked() ), this, SLOT( addEnironVariable() ) );
-}
-
-void CConfig::addEnironVariable()
-{
-    QScopedPointer<CVarEditor> dlg( new CVarEditor( "Create new environment variable", Q_NULLPTR ) );
-    if ( dlg )
-    {
-        if ( dlg->exec() == QDialog::Accepted )
-        {
-            // save input
-        }
-    }
 }
