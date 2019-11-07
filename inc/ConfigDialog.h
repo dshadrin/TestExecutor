@@ -7,17 +7,23 @@
 #include <QSettings>
 
 //////////////////////////////////////////////////////////////////////////
+class CConfig;
+
+//////////////////////////////////////////////////////////////////////////
 class CConfigDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    CConfigDialog(QWidget* parent = Q_NULLPTR);
+    explicit CConfigDialog(CConfig* config, QWidget* parent = Q_NULLPTR);
     ~CConfigDialog();
 
 private Q_SLOTS:
     void addEnironVariable();
+    void addTestAppPath();
+    void addProxyPath();
 
 private:
     Ui::Dialog uiConf;
+    CConfig* m_config;
 };

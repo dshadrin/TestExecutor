@@ -5,7 +5,7 @@
 #include <QMessageBox>
 
 // configuration file path
-QString g_QConfigName;
+std::string g_configName;
 
 int main(int argc, char *argv[])
 {
@@ -13,12 +13,8 @@ int main(int argc, char *argv[])
 
     try
     {
-        fs::path pt( argv[0] );
-        fs::path confPath( fs::absolute( pt ).replace_extension( "conf" ) );
-        QString cPt = QString::fromStdString( fs::absolute( pt ).remove_filename().string() );
-        g_QConfigName = QString::fromStdString( confPath.string() );
-        QSettings::setDefaultFormat( QSettings::IniFormat );
-        QSettings::setPath( QSettings::IniFormat, QSettings::UserScope, cPt );
+        fs::path confPath( fs::current_path() / fs::path(argv[0]).filename().replace_extension( ".json" ) );
+        g_configName = confPath.string();
 
         QApplication a(argc, argv);
         TestExecutor w;

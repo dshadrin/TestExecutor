@@ -66,6 +66,7 @@ set(SOURCES
   src/Config.cpp
   src/ConfigDialog.cpp
   src/console.cpp
+  src/common.cpp
   src/VarEditDialog.cpp
 )
 
@@ -75,6 +76,7 @@ set(HEADERS
   inc/Config.h
   inc/ConfigDialog.h
   inc/console.h
+  inc/common.h
   inc/VarEditDialog.h
 )
 include_directories(${CMAKE_SOURCE_DIR}/inc)

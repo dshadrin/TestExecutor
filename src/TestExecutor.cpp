@@ -11,7 +11,7 @@ TestExecutor::TestExecutor(QWidget *parent) :
     ui.setupUi(this);
     ui.tabWidget->addTab( new Console( this ), "Console" );
     readSettings();
-    QObject::connect( ui.actionAbout_Qt, SIGNAL( triggered() ), qApp, SLOT( aboutQt() ) );
+    QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     QObject::connect( ui.actionOptions, SIGNAL( triggered() ), this, SLOT( OptionsDialog() ) );
 
     setWindowTitle( tr( "MTF test executor" ) );
@@ -27,12 +27,13 @@ void TestExecutor::closeEvent( QCloseEvent* event )
 
 void TestExecutor::writeSettings()
 {
-    m_config->GetSettings().setValue( "geometry", saveGeometry() );
+    m_config->GetSettings().put(KEY_GEOMETRY, saveGeometry().toBase64().toStdString() );
+    m_config->WriteJsonConfig();
 }
 
 void TestExecutor::readSettings()
 {
-    const QByteArray geometry = m_config->GetSettings().value( "geometry", QByteArray() ).toByteArray();
+    const QByteArray geometry = QByteArray::fromBase64(QByteArray::fromStdString(m_config->GetSettings().get<std::string>(KEY_GEOMETRY, "")));
     if ( geometry.isEmpty() )
     {
         const QRect availableGeometry = QApplication::desktop()->availableGeometry( this );
@@ -48,7 +49,7 @@ void TestExecutor::readSettings()
 
 void TestExecutor::OptionsDialog()
 {
-    QScopedPointer<CConfigDialog> dlg( new CConfigDialog(Q_NULLPTR ) );
+    QScopedPointer<CConfigDialog> dlg(new CConfigDialog(m_config));
     if ( dlg )
     {
         if ( dlg->exec() == QDialog::Accepted )
