@@ -34,9 +34,6 @@ public:
     std::string ReadProxyPath();
 
 private:
-    std::locale GetLocale();
-
-private:
     std::string m_jsonConfigPath;
     std::string m_localeString;
     boost::property_tree::ptree m_pt;

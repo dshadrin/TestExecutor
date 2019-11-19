@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
     int result = -1;
 
-//    try
+    try
     {
         fs::path confPath( fs::current_path() / fs::path(argv[0]).filename().replace_extension( ".json" ) );
         g_configName = confPath.string();
@@ -21,11 +21,11 @@ int main(int argc, char *argv[])
         w.show();
         result = a.exec();
     }
-/*    catch ( const std::exception & e )
+    catch ( const std::exception & e )
     {
         QMessageBox::critical( Q_NULLPTR, QString( "Critical error" ), QString::fromStdString( e.what() ) );
         result = -1;
     }
-*/
+
     return result;
 }

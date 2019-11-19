@@ -27,14 +27,19 @@ elseif(MINGW)
   add_definitions(-D_WIN32_WINNT=0x0502)
   add_definitions(-U__STRICT_ANSI__)
   set(Boost_USE_STATIC_LIBS ON)
-  set(Boost_COMPILER "mgw73")
+  set(Boost_COMPILER ${MINGW_BOOST_COMPILER})
 elseif(UNIX)
   message(STATUS "Toolset: gcc unix")
   set(Boost_USE_STATIC_LIBS ON)
 endif()
 set(Boost_USE_MULTITHREADED ON)
 
-find_package(Boost 1.71 COMPONENTS system filesystem REQUIRED)
+set(BOOST_LIB_LIST
+  system
+  filesystem
+)
+
+find_package(Boost 1.71 COMPONENTS ${BOOST_LIB_LIST} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 message(STATUS "Boost LIBRARIES: ${Boost_LIBRARIES}")
 message(STATUS "Boost COMPILER: ${Boost_COMPILER}")
@@ -46,13 +51,13 @@ if(WIN32)
   if(MSVC)
     message(STATUS "MSVC Version: " ${MSVC_VERSION})
     if(${MSVC_VERSION} STRGREATER "1914")
-      set(USED_QT_PATH "d:/Qt/5.13.1/msvc2017_64")
+      set(USED_QT_PATH ${MSVC_QT_PATH})
     else()
       message(FATAL_ERROR "Unsupported MSVC version")
     endif()
   elseif(MINGW)
     message(STATUS "MINGW toolset" ${MSVC_VERSION})
-    set(USED_QT_PATH "d:/Qt/5.13.2/mingw73_64")
+    set(USED_QT_PATH ${MINGW_QT_PATH})
   endif()
   set(ENV{CMAKE_PREFIX_PATH} "${USED_QT_PATH}/lib/cmake")
   message(STATUS "CMAKE_PREFIX_PATH: " $ENV{CMAKE_PREFIX_PATH})
@@ -82,7 +87,6 @@ set(HEADERS
   inc/common.h
   inc/VarEditDialog.h
 )
-include_directories(${CMAKE_SOURCE_DIR}/inc)
 
 set(RESOURCES
   res/${PROJECT_NAME}.qrc
@@ -100,9 +104,11 @@ qt5_wrap_ui(FORM_H ${FORMS})
 ###
 # App configuration
 ###
-if(MINGW)
-#  link_libraries("-static")
-endif()
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${FORM_H} ${RESOURCES_R})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets ${Boost_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/inc)
+if(MINGW)
+  target_link_libraries(${PROJECT_NAME} "-static")
+endif()
+
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${DestinationDir})

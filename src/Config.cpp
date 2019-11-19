@@ -16,7 +16,7 @@ CConfig::CConfig( QObject* parent ) :
 {
     if (fs::exists(m_jsonConfigPath))
     {
-        bpt::read_json(m_jsonConfigPath, m_pt, GetLocale() );
+        bpt::read_json(m_jsonConfigPath, m_pt, std::locale() );
     }
     else
     {
@@ -32,23 +32,9 @@ CConfig::~CConfig()
 
 }
 
-std::locale CConfig::GetLocale()
-{
-    if ( m_localeString.empty() )
-    {
-        std::string locStr = m_pt.get<std::string>(KEY_LOCALE, "");
-        if ( locStr.empty() )
-        {
-            locStr = "ru_RU";
-        }
-        m_localeString = locStr;
-    }
-    return std::locale( m_localeString );
-}
-
 void CConfig::WriteJsonConfig()
 {
-    bpt::write_json(m_jsonConfigPath, m_pt, GetLocale(), true);
+    bpt::write_json(m_jsonConfigPath, m_pt, std::locale(), true);
 }
 
 void CConfig::StoreTestAppPath(const std::string& path)
