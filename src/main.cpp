@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
     int result = -1;
 
-    try
+//    try
     {
         fs::path pt( argv[0] );
         fs::path confPath( fs::absolute( pt ).replace_extension( "conf" ) );
@@ -25,11 +25,11 @@ int main(int argc, char *argv[])
         w.show();
         result = a.exec();
     }
-    catch ( const std::exception & e )
+/*    catch ( const std::exception & e )
     {
         QMessageBox::critical( Q_NULLPTR, QString( "Critical error" ), QString::fromStdString( e.what() ) );
         result = -1;
     }
-
+*/
     return result;
 }
