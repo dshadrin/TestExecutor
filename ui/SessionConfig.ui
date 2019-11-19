@@ -107,7 +107,7 @@
       <item>
        <layout class="QHBoxLayout" name="proxyHorizontalLayout">
         <item>
-         <widget class="QLabel" name="proxyEdit">
+         <widget class="QLabel" name="proxyLabel">
           <property name="text">
            <string>Com port proxy:</string>
           </property>
@@ -117,7 +117,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="proxyLabel"/>
+         <widget class="QLineEdit" name="proxyEdit"/>
         </item>
         <item>
          <widget class="QPushButton" name="proxySelect">
@@ -175,10 +175,10 @@
             <property name="columnCount">
              <number>2</number>
             </property>
-            <attribute name="horizontalHeaderMinimumSectionSize">
+            <attribute name="horizontalHeaderDefaultSectionSize">
              <number>250</number>
             </attribute>
-            <attribute name="horizontalHeaderDefaultSectionSize">
+            <attribute name="horizontalHeaderMinimumSectionSize">
              <number>250</number>
             </attribute>
             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
@@ -339,10 +339,10 @@
             <property name="columnCount">
              <number>2</number>
             </property>
-            <attribute name="horizontalHeaderMinimumSectionSize">
+            <attribute name="horizontalHeaderDefaultSectionSize">
              <number>250</number>
             </attribute>
-            <attribute name="horizontalHeaderDefaultSectionSize">
+            <attribute name="horizontalHeaderMinimumSectionSize">
              <number>250</number>
             </attribute>
             <attribute name="horizontalHeaderStretchLastSection">

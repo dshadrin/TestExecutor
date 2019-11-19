@@ -6,13 +6,13 @@
 namespace bpt = boost::property_tree;
 
 //////////////////////////////////////////////////////////////////////////
-extern QString g_QConfigName;
+extern std::string g_configName;
+#define KEY_LOCALE "locale"
 
 //////////////////////////////////////////////////////////////////////////
 CConfig::CConfig( QObject* parent ) :
     QObject(parent),
-    m_settings(g_QConfigName, QSettings::IniFormat, Q_NULLPTR),
-    m_jsonConfigPath((fs::current_path() / fs::path(g_QConfigName.toStdString()).filename().replace_extension(".json")).string())
+    m_jsonConfigPath(g_configName)
 {
     if (fs::exists(m_jsonConfigPath))
     {
@@ -29,20 +29,19 @@ CConfig::CConfig( QObject* parent ) :
 
 CConfig::~CConfig()
 {
-    m_settings.sync();
+
 }
 
 std::locale CConfig::GetLocale()
 {
     if ( m_localeString.empty() )
     {
-        QString locStr = GetSettings().value( "locale", "" ).toString();
-        if ( locStr.isEmpty() )
+        std::string locStr = m_pt.get<std::string>(KEY_LOCALE, "");
+        if ( locStr.empty() )
         {
             locStr = "ru_RU";
-            GetSettings().setValue( "locale", locStr );
         }
-        m_localeString = locStr.toStdString();
+        m_localeString = locStr;
     }
     return std::locale( m_localeString );
 }
@@ -50,4 +49,26 @@ std::locale CConfig::GetLocale()
 void CConfig::WriteJsonConfig()
 {
     bpt::write_json(m_jsonConfigPath, m_pt, GetLocale(), true);
+}
+
+void CConfig::StoreTestAppPath(const std::string& path)
+{
+    m_pt.put<std::string>(KEY_TEST_APP_PATH, path);
+    WriteJsonConfig();
+}
+
+std::string CConfig::ReadTestAppPath()
+{
+    return m_pt.get<std::string>(KEY_TEST_APP_PATH, "");
+}
+
+void CConfig::StoreProxyPath(const std::string& path)
+{
+    m_pt.put<std::string>(KEY_PROXY_PATH, path);
+    WriteJsonConfig();
+}
+
+std::string CConfig::ReadProxyPath()
+{
+    return m_pt.get<std::string>(KEY_PROXY_PATH, "");
 }
