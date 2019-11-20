@@ -1,5 +1,6 @@
 #include "StdInc.h"
 #include "Config.h"
+#include "ConfigDialog.h"
 #include "boost/property_tree/json_parser.hpp"
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,4 +58,19 @@ void CConfig::StoreProxyPath(const std::string& path)
 std::string CConfig::ReadProxyPath()
 {
     return m_pt.get<std::string>(KEY_PROXY_PATH, "");
+}
+
+void CConfig::FillOptionsDialog( CConfigDialog* dlg )
+{
+    dlg->SetAppName( m_pt.get<std::string>( KEY_TEST_APP_PATH, "" ) );
+    dlg->SetProxyName( m_pt.get<std::string>( KEY_PROXY_PATH, "" ) );
+
+}
+
+void CConfig::StoreOptionValues( CConfigDialog* dlg )
+{
+    m_pt.put( KEY_TEST_APP_PATH, dlg->GetAppName() );
+    m_pt.put( KEY_PROXY_PATH, dlg->GetProxyName() );
+
+    WriteJsonConfig();
 }

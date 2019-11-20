@@ -175,10 +175,10 @@
             <property name="columnCount">
              <number>2</number>
             </property>
-            <attribute name="horizontalHeaderDefaultSectionSize">
+            <attribute name="horizontalHeaderMinimumSectionSize">
              <number>250</number>
             </attribute>
-            <attribute name="horizontalHeaderMinimumSectionSize">
+            <attribute name="horizontalHeaderDefaultSectionSize">
              <number>250</number>
             </attribute>
             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
@@ -339,10 +339,10 @@
             <property name="columnCount">
              <number>2</number>
             </property>
-            <attribute name="horizontalHeaderDefaultSectionSize">
+            <attribute name="horizontalHeaderMinimumSectionSize">
              <number>250</number>
             </attribute>
-            <attribute name="horizontalHeaderMinimumSectionSize">
+            <attribute name="horizontalHeaderDefaultSectionSize">
              <number>250</number>
             </attribute>
             <attribute name="horizontalHeaderStretchLastSection">

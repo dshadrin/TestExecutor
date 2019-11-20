@@ -1,23 +1,20 @@
 #include "StdInc.h"
 #include "ConfigDialog.h"
-#include "Config.h"
 #include "common.h"
 #include "VarEditDialog.h"
 #include <QTableWidget>
+#include <QMessageBox>
+#include <QCloseEvent>
+#include <boost/filesystem.hpp>
 #include <cassert>
 
 //////////////////////////////////////////////////////////////////////////
-CConfigDialog::CConfigDialog(CConfig* config, QWidget* parent) :
-    QDialog( parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint ),
-    m_config(config)
+CConfigDialog::CConfigDialog(QWidget* parent) :
+    QDialog( parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint )
 {
-    assert(config != Q_NULLPTR);
     uiConf.setupUi( this );
     setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
     setAttribute( Qt::WA_CustomWhatsThis );
-
-    uiConf.appEdit->setText(QString::fromStdString(config->ReadTestAppPath()));
-    uiConf.proxyEdit->setText(QString::fromStdString(config->ReadProxyPath()));
 
     QFont headerFont( "Times", 10, QFont::Bold );
 
@@ -64,16 +61,28 @@ CConfigDialog::~CConfigDialog()
 
 void CConfigDialog::addTestAppPath()
 {
-    QString name = util::FindFile(m_config, tr("Find test application executable file"), tr("Executable (*.exe);;All files (*.*)"));
+    QString qPath;
+    std::string appPath = GetAppName();
+    if ( !appPath.empty() )
+    {
+        boost::filesystem::path path = boost::filesystem::path( appPath ).parent_path();
+        qPath = QString::fromStdString( path.string() );
+    }
+    QString name = util::FindFile( qPath, tr("Find test application executable file"), tr("Executable (*.exe);;All files (*.*)"));
     uiConf.appEdit->setText(name);
-    m_config->StoreTestAppPath(name.toStdString());
 }
 
 void CConfigDialog::addProxyPath()
 {
-    QString name = util::FindFile(m_config, tr("Find proxy executable file"), tr("Executable (*.exe);;All files (*.*)"));
+    QString qPath;
+    std::string appPath = GetProxyName();
+    if ( !appPath.empty() )
+    {
+        boost::filesystem::path path = boost::filesystem::path( appPath ).parent_path();
+        qPath = QString::fromStdString( path.string() );
+    }
+    QString name = util::FindFile( qPath, tr("Find proxy executable file"), tr("Executable (*.exe);;All files (*.*)"));
     uiConf.proxyEdit->setText(name);
-    m_config->StoreProxyPath(name.toStdString());
 }
 
 void CConfigDialog::addEnironVariable()
@@ -87,3 +96,24 @@ void CConfigDialog::addEnironVariable()
         }
     }
 }
+
+void CConfigDialog::SetAppName( const std::string& name )
+{
+    uiConf.appEdit->setText( QString::fromStdString( name ) );
+}
+
+void CConfigDialog::SetProxyName( const std::string& name )
+{
+    uiConf.proxyEdit->setText( QString::fromStdString( name ) );
+}
+
+std::string CConfigDialog::GetAppName() const
+{
+    return uiConf.appEdit->displayText().toStdString();
+}
+
+std::string CConfigDialog::GetProxyName() const
+{
+    return uiConf.proxyEdit->displayText().toStdString();
+}
+

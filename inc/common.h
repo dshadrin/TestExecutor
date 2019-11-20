@@ -6,11 +6,9 @@
 #pragma once
 #include <QString>
 
-class CConfig;
-
 //////////////////////////////////////////////////////////////////////////
 namespace util
 {
-    QString FindFile(CConfig* config = Q_NULLPTR, const QString& title = QString("Find file"), const QString& filter = QString("All files(*.*)"));
-    QString FindFolder(CConfig* config = Q_NULLPTR, const QString& title = QString("Select a Directory"));
+    QString FindFile(const QString& path = "", const QString& title = QString("Find file"), const QString& filter = QString("All files(*.*)"));
+    QString FindFolder(const QString& path = "", const QString& title = QString("Select a Directory"));
 }

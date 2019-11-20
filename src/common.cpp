@@ -6,47 +6,25 @@
 
 namespace util
 {
-    QString FindFile(CConfig* config, const QString& title, const QString& filter)
+    QString FindFile( const QString& path, const QString& title, const QString& filter)
     {
-        QString currPath = QDir::currentPath();
-        if (config)
-        {
-            //
-        }
-
+        QString currPath = path.isEmpty() ? QDir::currentPath() : path;
         QString filename = QFileDialog::getOpenFileName(Q_NULLPTR, title, currPath, filter);
         if (filename.isNull())
         {
             filename = "";
         }
-
-        if (config && !filename.isEmpty())
-        {
-            //
-        }
-
         return filename;
     }
 
-    QString FindFolder(CConfig* config, const QString& title)
+    QString FindFolder( const QString& path, const QString& title)
     {
-        QString currPath = QDir::currentPath();
-        if (config)
-        {
-            //
-        }
-
+        QString currPath = path.isEmpty() ? QDir::currentPath() : path;
         QString dirname = QFileDialog::getExistingDirectory(Q_NULLPTR, title, currPath);
         if (dirname.isNull())
         {
             dirname = "";
         }
-
-        if (config && !dirname.isEmpty())
-        {
-            //
-        }
-
         return dirname;
     }
 }

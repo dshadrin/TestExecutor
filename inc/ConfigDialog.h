@@ -7,16 +7,19 @@
 #include <QSettings>
 
 //////////////////////////////////////////////////////////////////////////
-class CConfig;
-
-//////////////////////////////////////////////////////////////////////////
 class CConfigDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit CConfigDialog(CConfig* config, QWidget* parent = Q_NULLPTR);
+    explicit CConfigDialog(QWidget* parent = Q_NULLPTR);
     ~CConfigDialog();
+
+    void SetAppName( const std::string& name );
+    void SetProxyName( const std::string& name );
+
+    std::string GetAppName() const;
+    std::string GetProxyName() const;
 
 private Q_SLOTS:
     void addEnironVariable();
@@ -25,5 +28,4 @@ private Q_SLOTS:
 
 private:
     Ui::Dialog uiConf;
-    CConfig* m_config;
 };

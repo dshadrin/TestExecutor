@@ -13,7 +13,7 @@
 #define KEY_PROXY_PATH KEY_PROXY_APP "." KEY_PATH
 #define KEY_GEOMETRY "geometry"
 
-class CConfig;
+class CConfigDialog;
 
 //////////////////////////////////////////////////////////////////////////
 class CConfig : public QObject
@@ -32,6 +32,9 @@ public:
 
     void StoreProxyPath(const std::string& path);
     std::string ReadProxyPath();
+
+    void FillOptionsDialog( CConfigDialog* dlg );
+    void StoreOptionValues( CConfigDialog* dlg );
 
 private:
     std::string m_jsonConfigPath;

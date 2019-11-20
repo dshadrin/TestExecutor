@@ -49,12 +49,13 @@ void TestExecutor::readSettings()
 
 void TestExecutor::OptionsDialog()
 {
-    QScopedPointer<CConfigDialog> dlg(new CConfigDialog(m_config));
+    QScopedPointer<CConfigDialog> dlg(new CConfigDialog());
     if ( dlg )
     {
+        m_config->FillOptionsDialog( dlg.get() );
         if ( dlg->exec() == QDialog::Accepted )
         {
-            // save input
+            m_config->StoreOptionValues( dlg.get() );
         }
     }
 }
