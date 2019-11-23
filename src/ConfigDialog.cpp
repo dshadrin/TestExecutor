@@ -5,7 +5,6 @@
 #include <QTableWidget>
 #include <QMessageBox>
 #include <QCloseEvent>
-#include <boost/filesystem.hpp>
 #include <cassert>
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,7 +64,7 @@ void CConfigDialog::addTestAppPath()
     std::string appPath = GetAppName();
     if ( !appPath.empty() )
     {
-        boost::filesystem::path path = boost::filesystem::path( appPath ).parent_path();
+        fs::path path = fs::path( appPath ).parent_path();
         qPath = QString::fromStdString( path.string() );
     }
     QString name = util::FindFile( qPath, tr("Find test application executable file"), tr("Executable (*.exe);;All files (*.*)"));
@@ -78,7 +77,7 @@ void CConfigDialog::addProxyPath()
     std::string appPath = GetProxyName();
     if ( !appPath.empty() )
     {
-        boost::filesystem::path path = boost::filesystem::path( appPath ).parent_path();
+        fs::path path = fs::path( appPath ).parent_path();
         qPath = QString::fromStdString( path.string() );
     }
     QString name = util::FindFile( qPath, tr("Find proxy executable file"), tr("Executable (*.exe);;All files (*.*)"));

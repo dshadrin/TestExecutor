@@ -1,3 +1,4 @@
+#include "StdInc.h"
 #include "TestExecutor.h"
 #include "console.h"
 #include "ConfigDialog.h"

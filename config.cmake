@@ -1,9 +1,11 @@
-set(PROJECT_NAME "TestExecutor")
-message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
+INCLUDE(CheckIncludeFileCXX)
+check_include_file_cxx("filesystem" HAVE_STD_FILESYSTEM)
+check_include_file_cxx("regex" HAVE_STD_REGEX)
+check_include_file_cxx("cstdint" HAVE_STD_INT)
+check_include_file_cxx("thread" HAVE_STD_THREAD)
 
-set(DestinationDir ${CMAKE_SOURCE_DIR}/dist)
-message(STATUS "DestinationDir: ${DestinationDir}")
+include(CheckSymbolExists)
+CHECK_SYMBOL_EXISTS(asprintf "stdio.h" HAVE_ASPRINTF)
 
-set(MINGW_BOOST_COMPILER "mgw73")
-set(MINGW_QT_PATH "d:/Qt/5.13.2/mingw73_64")
-set(MSVC_QT_PATH "d:/Qt/5.13.1/msvc2017_64")
+configure_file(inc/StdInc.h.in inc/StdInc.h @ONLY)
+                                         

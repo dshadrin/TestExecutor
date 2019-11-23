@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15)
 
-include(config.cmake)
+include(project.cmake)
 project(${PROJECT_NAME} LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -9,6 +9,8 @@ message(STATUS "Build path: " ${APP_BUILD_PATH})
 
 set(APP_SOURCE_PATH "${CMAKE_SOURCE_DIR}")
 message(STATUS "Source path: " ${APP_SOURCE_PATH})
+
+include(config.cmake)
 
 ###
 # Boost & platform configuration
@@ -25,7 +27,7 @@ elseif(MINGW)
   message(STATUS "Toolset: gcc mingw")
   add_definitions(-DWINVER=0x0502)
   add_definitions(-D_WIN32_WINNT=0x0502)
-  add_definitions(-U__STRICT_ANSI__)
+  add_definitions(-D__STRICT_ANSI__)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_COMPILER ${MINGW_BOOST_COMPILER})
 elseif(UNIX)
@@ -34,10 +36,16 @@ elseif(UNIX)
 endif()
 set(Boost_USE_MULTITHREADED ON)
 
-set(BOOST_LIB_LIST
-  system
-  filesystem
-)
+list(APPEND BOOST_LIB_LIST system)
+if(NOT HAVE_STD_FILESYSTEM)
+  list(APPEND BOOST_LIB_LIST filesystem)
+endif()
+if(NOT HAVE_STD_REGEX)
+  list(APPEND BOOST_LIB_LIST regex)
+endif()
+if(NOT HAVE_STD_THREAD)
+  list(APPEND BOOST_LIB_LIST thread)
+endif()
 
 find_package(Boost 1.71 COMPONENTS ${BOOST_LIB_LIST} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -69,6 +77,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5 COMPONENTS Gui Core Widgets REQUIRED)
 
 set(SOURCES
+  src/StdInc.cpp
   src/main.cpp
   src/${PROJECT_NAME}.cpp
   src/Config.cpp
@@ -79,7 +88,7 @@ set(SOURCES
 )
 
 set(HEADERS
-  inc/StdInc.h
+  ${APP_BUILD_PATH}/inc/StdInc.h
   inc/${PROJECT_NAME}.h
   inc/Config.h
   inc/ConfigDialog.h
@@ -106,7 +115,7 @@ qt5_wrap_ui(FORM_H ${FORMS})
 ###
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${FORM_H} ${RESOURCES_R})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets ${Boost_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/inc)
+target_include_directories(${PROJECT_NAME} PRIVATE ${APP_ROOT_PATH}/inc ${APP_BUILD_PATH}/inc)
 if(MINGW)
   target_link_libraries(${PROJECT_NAME} "-static")
 endif()
