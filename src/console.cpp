@@ -38,8 +38,6 @@ void Console::keyPressEvent(QKeyEvent *event)
 	historyBack();
     if(event->key() == Qt::Key_Down && event->modifiers() == Qt::NoModifier)
 	historyForward();
-    QString cmd = textCursor().block().text().mid(prompt.length());
-    emit onChange(cmd);
 }
 
 void Console::mousePressEvent(QMouseEvent *)
@@ -136,4 +134,22 @@ void Console::historyForward()
 	cursor.insertText(prompt + history->at(historyPos + 1));
     setTextCursor(cursor);
     historyPos++;
+}
+
+void Console::RunCommand( const std::string& rCmd)
+{
+    QString cmd = QString::fromStdString( rCmd );
+    output( cmd );
+    isLocked = true;
+    emit onCommand( cmd );
+
+    QProcess process;
+    process.start( "cmd", QStringList() << "/C" << cmd );
+    if (!process.waitForStarted() || !process.waitForFinished())
+    {
+        return;
+    }
+
+    QString str = QString::fromLocal8Bit( process.readAllStandardOutput() );
+    output( str );
 }

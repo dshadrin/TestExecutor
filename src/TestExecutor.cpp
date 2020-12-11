@@ -11,7 +11,8 @@
 TestExecutor::TestExecutor(QWidget *parent) :
     QMainWindow( parent ),
     m_config(new CConfig(this)),
-    m_thread( std::bind( &TestExecutor::ThreadIO, this ) )
+    m_thread( std::bind( &TestExecutor::ThreadIO, this ) ),
+    m_console(nullptr)
 {
     ui.setupUi(this);
 
@@ -19,7 +20,9 @@ TestExecutor::TestExecutor(QWidget *parent) :
     CLogClient::Get( logger );
     ui.tabWidget->addTab( new CLogger( logger, this ), QString::fromStdString( logger.get<std::string>( "name", "Logger" ) ) );
 
-    ui.tabWidget->addTab( new Console( this ), "Console" );
+    m_console = new Console( this );
+    ui.tabWidget->addTab( m_console, "Console" );
+    QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
 
     auto& monitors = m_config->GetSettings().get_child( "test-monitor" );
     for (auto& it : monitors)
@@ -34,6 +37,9 @@ TestExecutor::TestExecutor(QWidget *parent) :
     setWindowTitle( tr( "MTF test executor" ) );
     setWindowIcon( QIcon( ":/TestExecutor/common/editor.png" ) );
     setUnifiedTitleAndToolBarOnMac( true );
+
+    m_config->SetWorkDirectory();
+    emit Run( "test_app -ln" );
 }
 
 

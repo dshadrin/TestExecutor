@@ -18,9 +18,7 @@ protected:
 
 protected Q_SLOTS:
     void printData( const std::string& );
-    static Qt::GlobalColor ColorFromString( const std::string& color );
 
 private:
-    Qt::GlobalColor m_bgColor;
-    Qt::GlobalColor m_fgColor;
+    QTextCharFormat m_charFormat;
 };

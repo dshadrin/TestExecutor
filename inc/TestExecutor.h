@@ -6,6 +6,8 @@
 #include "ui_TestExecutor.h"
 #include <boost/asio/io_context.hpp>
 
+class Console;
+
 class TestExecutor : public QMainWindow
 {
     Q_OBJECT
@@ -27,9 +29,13 @@ private:
 private Q_SLOTS:
     void OptionsDialog();
 
+Q_SIGNALS:
+    void Run( const std::string& );
+
 private:
     Ui::TestExecutorClass ui;
     CConfig* m_config;
     boost::asio::io_context m_ioCtx;
     trd::thread m_thread;
+    Console* m_console;
 };

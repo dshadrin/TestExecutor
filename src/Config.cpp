@@ -9,6 +9,7 @@ namespace bpt = boost::property_tree;
 //////////////////////////////////////////////////////////////////////////
 extern std::string g_configName;
 #define KEY_LOCALE "locale"
+IMPLEMENT_MODULE_TAG( CConfig, "CONF" );
 
 //////////////////////////////////////////////////////////////////////////
 CConfig::CConfig( QObject* parent ) :
@@ -42,6 +43,7 @@ void CConfig::StoreTestAppPath(const std::string& path)
 {
     m_pt.put<std::string>(KEY_TEST_APP_PATH, path);
     WriteJsonConfig();
+    SetWorkDirectory();
 }
 
 std::string CConfig::ReadTestAppPath()
@@ -73,4 +75,19 @@ void CConfig::StoreOptionValues( CConfigDialog* dlg )
     m_pt.put( KEY_PROXY_PATH, dlg->GetProxyName() );
 
     WriteJsonConfig();
+}
+
+void CConfig::SetWorkDirectory()
+{
+    auto appPath = ReadTestAppPath();
+    if (!appPath.empty())
+    {
+        fs::path p = fs::path(appPath).parent_path();
+        fs::current_path( p );
+        LOG_INFO << "Set current directory: " << p;
+    }
+    else
+    {
+        LOG_WARN << "Test application path is empty";
+    }
 }

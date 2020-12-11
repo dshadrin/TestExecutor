@@ -35,8 +35,6 @@ private:
     void historyBack();
     void historyForward();
 
-    static Qt::GlobalColor ColorFromString( const std::string& color );
-
 private:
     boost::asio::io_context& m_ioCtx;
     boost::asio::ip::tcp::socket m_socket;
@@ -54,6 +52,7 @@ private:
     Qt::GlobalColor m_camColor;
     Qt::GlobalColor m_fgColor;
     std::string m_name;
+    QTextCharFormat m_charFormat;
     DECLARE_MODULE_TAG;
 
 Q_SIGNALS:

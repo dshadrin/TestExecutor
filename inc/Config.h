@@ -1,7 +1,7 @@
 #pragma once
 
 //////////////////////////////////////////////////////////////////////////
-
+#include "logclient/logclient.h"
 #include <QSettings>
 #include <boost/property_tree/ptree.hpp>
 
@@ -36,8 +36,11 @@ public:
     void FillOptionsDialog( CConfigDialog* dlg );
     void StoreOptionValues( CConfigDialog* dlg );
 
+    void SetWorkDirectory();
+
 private:
     std::string m_jsonConfigPath;
     std::string m_localeString;
     boost::property_tree::ptree m_pt;
+    DECLARE_MODULE_TAG;
 };

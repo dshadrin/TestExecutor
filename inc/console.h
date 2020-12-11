@@ -8,7 +8,7 @@ class Console : public QPlainTextEdit
 {
     Q_OBJECT
 public:
-    explicit Console(QWidget *parent = 0);
+    explicit Console(QWidget *parent = nullptr);
     void output(QString);
     void scrollDown();
 protected:
@@ -27,9 +27,12 @@ private:
     void historyAdd(QString);
     void historyBack();
     void historyForward();
-signals:
+
+public Q_SLOTS:
+    void RunCommand( const std::string& );
+
+Q_SIGNALS:
     void onCommand(QString);
-    void onChange(QString);
 };
 
 #endif // CONSOLE_H

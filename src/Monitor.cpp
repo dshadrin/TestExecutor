@@ -1,10 +1,11 @@
 #include "StdInc.h"
 #include "Monitor.h"
+#include "common.h"
 #include <QScrollBar>
 #include <boost/asio.hpp>
 
 #define IN_BUFFER_SIZE 512
-IMPLEMENT_MODULE_TAG( CMonitor, "MON1" );
+IMPLEMENT_MODULE_TAG( CMonitor, "QMON" );
 
 CMonitor::CMonitor( boost::asio::io_context& ioCtx, const boost::property_tree::ptree& pt, QWidget *parent ) :
 	QPlainTextEdit(parent),
@@ -14,15 +15,16 @@ CMonitor::CMonitor( boost::asio::io_context& ioCtx, const boost::property_tree::
     m_inBuffer(m_inBuffSize),
     m_isLocked(false),
     m_historyPos(0),
-    m_bgColor( ColorFromString( pt.get<std::string>( "bg-color", "black" ) ) ),
-    m_fgColor( ColorFromString( pt.get<std::string>( "cmd-text-color", "green" ) ) ),
-    m_camColor( ColorFromString( pt.get<std::string>( "camera-text-color", "white" ) ) ),
+    m_fgColor( util::ColorFromString( pt.get<std::string>( "cmd-text-color", "green" ) ) ),
+    m_camColor( util::ColorFromString( pt.get<std::string>( "camera-text-color", "white" ) ) ),
     m_name( pt.get<std::string>( "name", "Camera monitor" ) )
 {
     QPalette p = palette();
-    p.setColor( QPalette::Base, m_bgColor );
-    p.setColor(QPalette::Text, m_fgColor );
-    setPalette(p);
+    p.setColor( QPalette::Base, util::ColorFromString( pt.get<std::string>( "bg-color", "black" ) ) );
+    p.setColor( QPalette::Text, m_fgColor );
+    setPalette( p );
+
+    m_charFormat.setFont( QFont( QString::fromStdString( pt.get<std::string>( "font-name", "Courier New" ) ), pt.get<int>( "font-weight", 12 ) ) );
 
     std::string connStr = pt.get<std::string>( "connection-string", "localhost:2002" );
     if (!connStr.empty())
@@ -46,15 +48,9 @@ CMonitor::~CMonitor()
 
 void CMonitor::printData(QString s, Qt::GlobalColor txtColor)
 {
-    auto tc = textCursor();
-    tc.movePosition( QTextCursor::End );
-    setTextCursor( tc );
-
     textCursor().insertBlock();
-    QTextCharFormat format;
-    format.setForeground( txtColor );
-    format.setFont( QFont( "Lucida Console", 8 ) );
-    textCursor().setBlockCharFormat(format);
+    m_charFormat.setForeground( txtColor );
+    textCursor().setBlockCharFormat( m_charFormat );
     textCursor().insertText(s);
     scrollDown();
 }
@@ -64,7 +60,7 @@ void CMonitor::Stop()
 {
     if (m_socket.is_open())
     {
-        LOG_WARN << m_name << " close";
+        LOG_INFO << m_name << " close";
         QObject::disconnect( this, &CMonitor::onData, this, &CMonitor::printData );
         m_socket.shutdown( boost::asio::socket_base::shutdown_both );
         m_socket.close();
@@ -188,31 +184,6 @@ void CMonitor::historyForward()
     }
     setTextCursor( cursor );
     m_historyPos++;
-}
-
-
-Qt::GlobalColor CMonitor::ColorFromString( const std::string& color )
-{
-    if (color == "color1") return Qt::color1;
-    else if (color == "black") return Qt::black;
-    else if (color == "white") return Qt::white;
-    else if (color == "darkGray") return Qt::darkGray;
-    else if (color == "gray") return Qt::gray;
-    else if (color == "lightGray") return Qt::lightGray;
-    else if (color == "red") return Qt::red;
-    else if (color == "green") return Qt::green;
-    else if (color == "blue") return Qt::blue;
-    else if (color == "cyan") return Qt::cyan;
-    else if (color == "magenta") return Qt::magenta;
-    else if (color == "yellow") return Qt::yellow;
-    else if (color == "darkRed") return Qt::darkRed;
-    else if (color == "darkGreen") return Qt::darkGreen;
-    else if (color == "darkBlue") return Qt::darkBlue;
-    else if (color == "darkCyan") return Qt::darkCyan;
-    else if (color == "darkMagenta") return Qt::darkMagenta;
-    else if (color == "darkYellow") return Qt::darkYellow;
-    else if (color == "transparent") return Qt::transparent;
-    else return Qt::color0;
 }
 
 void CMonitor::scrollDown()

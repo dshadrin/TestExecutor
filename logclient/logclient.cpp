@@ -107,12 +107,10 @@ void CLogClient::Push(std::shared_ptr<SLogPackage> package)
             WriteNextMessage();
         }
     }
-//     else
-//     {
-        std::ostringstream oss;
-        oss << "[" << TS::GetTimestampStr( package->timestamp ) << "][" << package->tag << "][" << SeverityToString( package->severity ) << "] - " << package->message << std::endl;
-        emit PrintLog( oss.str() );
-//     }
+
+    std::ostringstream oss;
+    oss << "[" << TS::GetTimestampStr( package->timestamp ) << "][" << package->tag << "][" << SeverityToString( package->severity ) << "] - " << package->message;
+    emit PrintLog( oss.str() );
 }
 
 
