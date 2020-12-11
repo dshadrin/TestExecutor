@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
         fs::path confPath( fs::current_path() / fs::path(argv[0]).filename().replace_extension( ".json" ) );
         g_configName = confPath.string();
 
-        QApplication a(argc, argv);
+        QApplication a( argc, argv );
         TestExecutor w;
         w.show();
         result = a.exec();

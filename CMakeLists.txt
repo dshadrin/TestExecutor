@@ -40,14 +40,15 @@ list(APPEND BOOST_LIB_LIST system)
 if(NOT HAVE_STD_FILESYSTEM)
   list(APPEND BOOST_LIB_LIST filesystem)
 endif()
-if(NOT HAVE_STD_REGEX)
+#if(NOT HAVE_STD_REGEX)
   list(APPEND BOOST_LIB_LIST regex)
-endif()
+#endif()
 if(NOT HAVE_STD_THREAD)
   list(APPEND BOOST_LIB_LIST thread)
 endif()
+list(APPEND BOOST_LIB_LIST date_time)
 
-find_package(Boost 1.71 COMPONENTS ${BOOST_LIB_LIST} REQUIRED)
+find_package(Boost ${PRJ_BOOST_VERSION} COMPONENTS ${BOOST_LIB_LIST} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 message(STATUS "Boost LIBRARIES: ${Boost_LIBRARIES}")
 message(STATUS "Boost COMPILER: ${Boost_COMPILER}")
@@ -74,7 +75,7 @@ endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Qt5 COMPONENTS Gui Core Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Gui Core Widgets REQUIRED)
 
 set(SOURCES
   src/StdInc.cpp
@@ -85,6 +86,8 @@ set(SOURCES
   src/console.cpp
   src/common.cpp
   src/VarEditDialog.cpp
+  src/Monitor.cpp
+  src/Logger.cpp
 )
 
 set(HEADERS
@@ -95,6 +98,8 @@ set(HEADERS
   inc/console.h
   inc/common.h
   inc/VarEditDialog.h
+  inc/Monitor.h
+  inc/Logger.h
 )
 
 set(RESOURCES
@@ -107,14 +112,20 @@ set(FORMS
   ui/VarEdit.ui
 )
 
-qt5_add_resources(RESOURCES_R ${RESOURCES})
-qt5_wrap_ui(FORM_H ${FORMS})
+qt6_add_resources(RESOURCES_R ${RESOURCES})
+qt6_wrap_ui(FORM_H ${FORMS})
+
+include_directories(${APP_ROOT_PATH})
+
+add_subdirectory(oscar)
+add_subdirectory(utils)
+add_subdirectory(logclient)
 
 ###
 # App configuration
 ###
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${FORM_H} ${RESOURCES_R})
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Gui Qt6::Widgets ${Boost_LIBRARIES} logclient)
 target_include_directories(${PROJECT_NAME} PRIVATE ${APP_ROOT_PATH}/inc ${APP_BUILD_PATH}/inc)
 if(MINGW)
   target_link_libraries(${PROJECT_NAME} "-static")

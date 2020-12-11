@@ -26,6 +26,7 @@
 #cmakedefine HAVE_STD_FILESYSTEM
 #cmakedefine HAVE_STD_REGEX
 #cmakedefine HAVE_STD_THREAD
+#cmakedefine HAVE_STD_CHRONO
 
 #cmakedefine HAVE_ASPRINTF
 
@@ -76,6 +77,14 @@ namespace sync = std;
 #include <boost/thread.hpp>
 namespace trd = boost;
 namespace sync = boost::thread;
+#endif
+
+#ifdef HAVE_STD_CHRONO
+#include <chrono>
+namespace chr = std;
+#else
+#include <boost/chrono.hpp>
+namespace chr = boost;
 #endif
 
 #include <boost/algorithm/string.hpp>

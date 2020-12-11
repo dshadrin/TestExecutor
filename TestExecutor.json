@@ -1,5 +1,36 @@
 {
-    "test-application": {
-        "path": ""
+  "test-application": {
+      "path": "D:\/Projects\/MTF1\/dist\/test_app.exe"
+  },
+  "geometry": "AdnQywADAAAAAABsAAAA1AAABMAAAAOxAAAAbQAAAPMAAAS\/AAADsAAAAAAAAAAAB4AAAABtAAAA8wAABL8AAAOw",
+  "proxy-application": {
+      "path": ""
+  },
+  "test-monitor": {
+    "monitor1" : {
+      "name": "Left camera monitor",
+      "connection-string": "192.168.1.78:2002",
+      "cmd-text-color": "green",
+      "bg-color": "black",
+      "camera-text-color": "white"
+    },
+    "monitor2" : {
+      "name": "Right camera monitor",
+      "connection-string": "192.168.1.78:2005",
+      "cmd-text-color": "green",
+      "bg-color": "black",
+      "camera-text-color": "white"
     }
+  },
+  "logger" : {
+    "client": {
+      "name": "TestExecutor log",
+      "host": "192.168.1.78",
+      "port": 2100,
+      "retry": 5,
+      "max_message_size": 2048,
+      "module_tag_size": 4,
+      "severity": "DEBUG"
+    }
+  }
 }

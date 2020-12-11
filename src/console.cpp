@@ -2,6 +2,8 @@
 #include "console.h"
 #include <QScrollBar>
 #include <QProcess>
+#include <QStringDecoder>
+#include <QStringEncoder>
 
 Console::Console(QWidget *parent) :
 	QPlainTextEdit(parent)
@@ -61,14 +63,15 @@ void Console::onEnter()
     historyAdd(cmd);
     emit onCommand(cmd);
 
-    //QProcess process;
-    //process.start( "cmd", QStringList() << "/C" << cmd );
-    //if ( !process.waitForStarted() || !process.waitForFinished() )
-    //{
-    //    return;
-    //}
+    QProcess process;
+    process.start( "cmd", QStringList() << "/C" << cmd );
+    if ( !process.waitForStarted() || !process.waitForFinished() )
+    {
+        return;
+    }
 
-    //output( QString(process.readAllStandardOutput()).toUtf8() );
+    QString str = QString::fromLocal8Bit( process.readAllStandardOutput() );
+    output( str );
 }
 
 void Console::output(QString s)
@@ -76,6 +79,7 @@ void Console::output(QString s)
     textCursor().insertBlock();
     QTextCharFormat format;
     format.setForeground(Qt::white);
+    format.setFont( QFont( "Lucida Console", 8 ) );
     textCursor().setBlockCharFormat(format);
     textCursor().insertText(s);
     insertPrompt();
