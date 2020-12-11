@@ -9,3 +9,4 @@ CVarEditor::CVarEditor( const QString& name, QWidget* parent)
     setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
     setAttribute( Qt::WA_CustomWhatsThis );
 }
+

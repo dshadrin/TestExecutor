@@ -48,9 +48,11 @@ CConfigDialog::CConfigDialog(QWidget* parent) :
     }
 
 
-    QObject::connect(uiConf.addEnvButton, SIGNAL(clicked()), this, SLOT(addEnironVariable()));
-    QObject::connect(uiConf.appSelect, SIGNAL(clicked()), this, SLOT(addTestAppPath()));
-    QObject::connect(uiConf.proxySelect, SIGNAL(clicked()), this, SLOT(addProxyPath()));
+    QObject::connect( uiConf.addEnvButton, SIGNAL( clicked() ), this, SLOT( addEnironVariable() ) );
+    QObject::connect( uiConf.delEnvButton, SIGNAL( clicked() ), this, SLOT( delEnironVariable() ) );
+    QObject::connect( uiConf.editEnvButton, SIGNAL( clicked() ), this, SLOT( editEnironVariable() ) );
+    QObject::connect( uiConf.appSelect, SIGNAL( clicked() ), this, SLOT( addTestAppPath() ) );
+    QObject::connect( uiConf.proxySelect, SIGNAL( clicked() ), this, SLOT( addProxyPath() ) );
 }
 
 CConfigDialog::~CConfigDialog()
@@ -91,7 +93,45 @@ void CConfigDialog::addEnironVariable()
     {
         if ( dlg->exec() == QDialog::Accepted )
         {
-            // save input
+            QString name = dlg->uiVarEdit.lineEditName->text();
+            QString value = dlg->uiVarEdit.lineEditValue->text();
+            int row = uiConf.envTableWidget->rowCount();
+            uiConf.envTableWidget->setRowCount( row + 1 );
+            QTableWidgetItem* newItem = new QTableWidgetItem( name );
+            uiConf.envTableWidget->setItem( row, 0, newItem );
+            newItem = new QTableWidgetItem( value );
+            uiConf.envTableWidget->setItem( row, 1, newItem );
+            uiConf.envTableWidget->sortItems( 0 );
+        }
+    }
+}
+
+void CConfigDialog::delEnironVariable()
+{
+    int row = uiConf.envTableWidget->currentRow();
+    uiConf.envTableWidget->removeRow( row );
+    uiConf.envTableWidget->sortItems( 0 );
+}
+
+
+void CConfigDialog::editEnironVariable()
+{
+    int row = uiConf.envTableWidget->currentRow();
+    QTableWidgetItem* nameItem = uiConf.envTableWidget->item( row, 0 );
+    QString name = nameItem->text();
+    QTableWidgetItem * valueItem = uiConf.envTableWidget->item( row, 1 );
+    QString value = valueItem->text();
+
+    QScopedPointer<CVarEditor> dlg( new CVarEditor( tr( "Create new environment variable" ), Q_NULLPTR ) );
+    if (dlg)
+    {
+        dlg->uiVarEdit.lineEditName->setText( nameItem->text() );
+        dlg->uiVarEdit.lineEditValue->setText( valueItem->text() );
+        if (dlg->exec() == QDialog::Accepted)
+        {
+            nameItem->setText( dlg->uiVarEdit.lineEditName->text() );
+            valueItem->setText( dlg->uiVarEdit.lineEditValue->text() );
+            uiConf.envTableWidget->sortItems( 0 );
         }
     }
 }

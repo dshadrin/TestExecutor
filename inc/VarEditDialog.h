@@ -14,6 +14,6 @@ class CVarEditor : public QDialog
 public:
     CVarEditor( const QString& name, QWidget* parent = Q_NULLPTR );
 
-private:
+public:
     Ui::VarEditDialog uiVarEdit;
 };

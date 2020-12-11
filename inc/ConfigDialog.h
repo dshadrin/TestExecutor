@@ -23,6 +23,8 @@ public:
 
 private Q_SLOTS:
     void addEnironVariable();
+    void delEnironVariable();
+    void editEnironVariable();
     void addTestAppPath();
     void addProxyPath();
 
