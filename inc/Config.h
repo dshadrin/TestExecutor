@@ -7,10 +7,12 @@
 
 //////////////////////////////////////////////////////////////////////////
 #define KEY_TEST_APP "test-application"
-#define KEY_PROXY_APP "proxy-application"
+#define KEY_RUN_BEFORE_APP "run-before-application"
 #define KEY_PATH "path"
+#define KEY_ENV "environment"
 #define KEY_TEST_APP_PATH KEY_TEST_APP "." KEY_PATH
-#define KEY_PROXY_PATH KEY_PROXY_APP "." KEY_PATH
+#define KEY_RUN_BEFORE_PATH KEY_RUN_BEFORE_APP "." KEY_PATH
+#define KEY_ENV_PATH KEY_TEST_APP "." KEY_ENV
 #define KEY_GEOMETRY "geometry"
 
 class CConfigDialog;
@@ -30,8 +32,8 @@ public:
     void StoreTestAppPath(const std::string& path);
     std::string ReadTestAppPath();
 
-    void StoreProxyPath(const std::string& path);
-    std::string ReadProxyPath();
+    void StoreRunBeforePath(const std::string& path);
+    std::string ReadRunBeforePath();
 
     void FillOptionsDialog( CConfigDialog* dlg );
     void StoreOptionValues( CConfigDialog* dlg );

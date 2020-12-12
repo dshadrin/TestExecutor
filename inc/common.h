@@ -6,6 +6,12 @@
 #pragma once
 #include <QString>
 
+#ifdef WIN32
+const char LIST_PATH_SEPARATOR = ';';
+#else
+const char LIST_PATH_SEPARATOR = ':';
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 namespace util
 {

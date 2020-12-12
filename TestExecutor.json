@@ -3,7 +3,7 @@
       "path": "D:\/Projects\/MTF1\/dist\/test_app.exe"
   },
   "geometry": "AdnQywADAAAAAABsAAAA1AAABMAAAAOxAAAAbQAAAPMAAAS\/AAADsAAAAAAAAAAAB4AAAABtAAAA8wAABL8AAAOw",
-  "proxy-application": {
+  "run-before-application": {
       "path": ""
   },
   "test-monitor": {

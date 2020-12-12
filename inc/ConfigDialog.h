@@ -16,17 +16,19 @@ public:
     ~CConfigDialog();
 
     void SetAppName( const std::string& name );
-    void SetProxyName( const std::string& name );
+    void SetRunBeforeName( const std::string& name );
 
     std::string GetAppName() const;
-    std::string GetProxyName() const;
+    std::string GetRunBeforeName() const;
+    QList<std::pair<QString, QString>> GetEnvironmentValues() const;
+    QTableWidget* GetEnvTableWidget();
 
 private Q_SLOTS:
     void addEnironVariable();
     void delEnironVariable();
     void editEnironVariable();
     void addTestAppPath();
-    void addProxyPath();
+    void addRunBeforePath();
 
 private:
     Ui::Dialog uiConf;

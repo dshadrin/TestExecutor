@@ -55,8 +55,20 @@
      <layout class="QVBoxLayout" name="selectionVerticalLayout">
       <item>
        <layout class="QHBoxLayout" name="appHorizontalLayout">
-        <item>
+        <item alignment="Qt::AlignRight">
          <widget class="QLabel" name="appLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>85</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>Test application:</string>
           </property>
@@ -105,11 +117,23 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="proxyHorizontalLayout">
+       <layout class="QHBoxLayout" name="runBeforeHorizontalLayout">
         <item>
-         <widget class="QLabel" name="proxyLabel">
+         <widget class="QLabel" name="runBeforeLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>85</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
-           <string>Com port proxy:</string>
+           <string>Run before:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -117,10 +141,10 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="proxyEdit"/>
+         <widget class="QLineEdit" name="runBeforeEdit"/>
         </item>
         <item>
-         <widget class="QPushButton" name="proxySelect">
+         <widget class="QPushButton" name="runBeforeSelect">
           <property name="enabled">
            <bool>true</bool>
           </property>

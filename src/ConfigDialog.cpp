@@ -52,7 +52,7 @@ CConfigDialog::CConfigDialog(QWidget* parent) :
     QObject::connect( uiConf.delEnvButton, SIGNAL( clicked() ), this, SLOT( delEnironVariable() ) );
     QObject::connect( uiConf.editEnvButton, SIGNAL( clicked() ), this, SLOT( editEnironVariable() ) );
     QObject::connect( uiConf.appSelect, SIGNAL( clicked() ), this, SLOT( addTestAppPath() ) );
-    QObject::connect( uiConf.proxySelect, SIGNAL( clicked() ), this, SLOT( addProxyPath() ) );
+    QObject::connect( uiConf.runBeforeSelect, SIGNAL( clicked() ), this, SLOT( addRunBeforePath() ) );
 }
 
 CConfigDialog::~CConfigDialog()
@@ -73,17 +73,17 @@ void CConfigDialog::addTestAppPath()
     uiConf.appEdit->setText(name);
 }
 
-void CConfigDialog::addProxyPath()
+void CConfigDialog::addRunBeforePath()
 {
     QString qPath;
-    std::string appPath = GetProxyName();
+    std::string appPath = GetRunBeforeName();
     if ( !appPath.empty() )
     {
         fs::path path = fs::path( appPath ).parent_path();
         qPath = QString::fromStdString( path.string() );
     }
-    QString name = util::FindFile( qPath, tr("Find proxy executable file"), tr("Executable (*.exe);;All files (*.*)"));
-    uiConf.proxyEdit->setText(name);
+    QString name = util::FindFile( qPath, tr("Find run before executable file"), tr("Executable (*.exe);;All files (*.*)"));
+    uiConf.runBeforeEdit->setText(name);
 }
 
 void CConfigDialog::addEnironVariable()
@@ -141,9 +141,9 @@ void CConfigDialog::SetAppName( const std::string& name )
     uiConf.appEdit->setText( QString::fromStdString( name ) );
 }
 
-void CConfigDialog::SetProxyName( const std::string& name )
+void CConfigDialog::SetRunBeforeName( const std::string& name )
 {
-    uiConf.proxyEdit->setText( QString::fromStdString( name ) );
+    uiConf.runBeforeEdit->setText( QString::fromStdString( name ) );
 }
 
 std::string CConfigDialog::GetAppName() const
@@ -151,8 +151,26 @@ std::string CConfigDialog::GetAppName() const
     return uiConf.appEdit->displayText().toStdString();
 }
 
-std::string CConfigDialog::GetProxyName() const
+std::string CConfigDialog::GetRunBeforeName() const
 {
-    return uiConf.proxyEdit->displayText().toStdString();
+    return uiConf.runBeforeEdit->displayText().toStdString();
+}
+
+QList<std::pair<QString, QString>> CConfigDialog::GetEnvironmentValues() const
+{
+    int rows = uiConf.envTableWidget->rowCount();
+    QList<std::pair<QString, QString>> lEnv;
+    for (int i = 0; i < rows; ++i)
+    {
+        QTableWidgetItem* nameItem = uiConf.envTableWidget->item( i, 0 );
+        QTableWidgetItem* valueItem = uiConf.envTableWidget->item( i, 1 );
+        lEnv.push_back( std::make_pair( nameItem->text(), valueItem->text() ) );
+    }
+    return lEnv;
+}
+
+QTableWidget* CConfigDialog::GetEnvTableWidget()
+{
+    return uiConf.envTableWidget;
 }
 
