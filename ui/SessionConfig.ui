@@ -196,6 +196,12 @@
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QTableWidget" name="envTableWidget">
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
             <property name="columnCount">
              <number>2</number>
             </property>
@@ -214,8 +220,11 @@
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
             </attribute>
+            <attribute name="verticalHeaderMinimumSectionSize">
+             <number>20</number>
+            </attribute>
             <attribute name="verticalHeaderDefaultSectionSize">
-             <number>35</number>
+             <number>20</number>
             </attribute>
             <column/>
             <column/>
@@ -360,8 +369,11 @@
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QTableWidget" name="paramTableWidget">
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
             <property name="columnCount">
-             <number>2</number>
+             <number>1</number>
             </property>
             <attribute name="horizontalHeaderMinimumSectionSize">
              <number>250</number>
@@ -375,7 +387,12 @@
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
             </attribute>
-            <column/>
+            <attribute name="verticalHeaderMinimumSectionSize">
+             <number>20</number>
+            </attribute>
+            <attribute name="verticalHeaderDefaultSectionSize">
+             <number>20</number>
+            </attribute>
             <column/>
            </widget>
           </item>

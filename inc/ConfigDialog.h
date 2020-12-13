@@ -29,6 +29,8 @@ private Q_SLOTS:
     void editEnironVariable();
     void addTestAppPath();
     void addRunBeforePath();
+    void addNewParam();
+    void delParam();
 
 private:
     Ui::Dialog uiConf;

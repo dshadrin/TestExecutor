@@ -53,6 +53,8 @@ CConfigDialog::CConfigDialog(QWidget* parent) :
     QObject::connect( uiConf.editEnvButton, SIGNAL( clicked() ), this, SLOT( editEnironVariable() ) );
     QObject::connect( uiConf.appSelect, SIGNAL( clicked() ), this, SLOT( addTestAppPath() ) );
     QObject::connect( uiConf.runBeforeSelect, SIGNAL( clicked() ), this, SLOT( addRunBeforePath() ) );
+    QObject::connect( uiConf.addParamButton, SIGNAL( clicked() ), this, SLOT( addNewParam() ) );
+    QObject::connect( uiConf.delParamButton, SIGNAL( clicked() ), this, SLOT( delParam() ) );
 }
 
 CConfigDialog::~CConfigDialog()
@@ -86,6 +88,24 @@ void CConfigDialog::addRunBeforePath()
     uiConf.runBeforeEdit->setText(name);
 }
 
+
+void CConfigDialog::addNewParam()
+{
+    int row = uiConf.paramTableWidget->rowCount();
+    uiConf.paramTableWidget->setRowCount( row + 1 );
+}
+
+
+void CConfigDialog::delParam()
+{
+    int row = uiConf.paramTableWidget->currentRow();
+    if (row >= 0)
+    {
+        uiConf.paramTableWidget->removeRow( row );
+        uiConf.paramTableWidget->sortItems( 0 );
+    }
+}
+
 void CConfigDialog::addEnironVariable()
 {
     QScopedPointer<CVarEditor> dlg( new CVarEditor( tr("Create new environment variable"), Q_NULLPTR ) );
@@ -109,8 +129,11 @@ void CConfigDialog::addEnironVariable()
 void CConfigDialog::delEnironVariable()
 {
     int row = uiConf.envTableWidget->currentRow();
-    uiConf.envTableWidget->removeRow( row );
-    uiConf.envTableWidget->sortItems( 0 );
+    if (row >= 0)
+    {
+        uiConf.envTableWidget->removeRow( row );
+        uiConf.envTableWidget->sortItems( 0 );
+    }
 }
 
 
