@@ -12,6 +12,7 @@ CMonitor::CMonitor( boost::asio::io_context& ioCtx, const boost::property_tree::
     m_inBuffSize(IN_BUFFER_SIZE),
     m_inBuffer(m_inBuffSize),
     m_isLocked(false),
+    m_isConnecting(false),
     m_historyPos(0),
     m_fgColor( util::ColorFromString( pt.get<std::string>( "cmd-text-color", "green" ) ) ),
     m_camColor( util::ColorFromString( pt.get<std::string>( "camera-text-color", "white" ) ) ),
@@ -34,14 +35,17 @@ CMonitor::CMonitor( boost::asio::io_context& ioCtx, const boost::property_tree::
             m_host = result[1];
             m_port = std::stoi( result[2] );
             QObject::connect( this, &CMonitor::onData, this, &CMonitor::printData );
-            Connect();
+            if (!Connect())
+            {
+                throw std::runtime_error( "Cannot connect to camera monitor" );
+            }
         }
     }
 }
 
 CMonitor::~CMonitor()
 {
-    Stop();
+
 }
 
 void CMonitor::printData(QString s, Qt::GlobalColor txtColor)
@@ -65,6 +69,10 @@ void CMonitor::Stop()
     }
 }
 
+void CMonitor::shutdown()
+{
+    Stop();
+}
 
 bool CMonitor::Connect()
 {
@@ -74,6 +82,7 @@ bool CMonitor::Connect()
     boost::system::error_code ec;
     bool status = true;
     boost::asio::connect( m_socket, iter, ec );
+    m_socket.native_non_blocking(true);
     if (ec.value() != 0)
     {
         status = false;
@@ -81,6 +90,7 @@ bool CMonitor::Connect()
     }
     else
     {
+        m_isConnecting = true;
         m_socket.async_read_some( boost::asio::buffer( m_inBuffer.data(), m_inBuffSize ), std::bind( &CMonitor::ReadHandler, this, std::placeholders::_1, std::placeholders::_2 ) );
         LOG_INFO << m_name << " connected: " << m_socket.local_endpoint( ec ).address().to_string() << ":" << m_socket.local_endpoint( ec ).port() << " -> "
             << m_socket.remote_endpoint( ec ).address().to_string() << ":" << m_socket.remote_endpoint( ec ).port();
@@ -100,7 +110,7 @@ void CMonitor::ReadHandler( const boost::system::error_code& ec, std::size_t byt
     }
     else
     {
-        Stop();
+        LOG_WARN << "Error read from monitor: " << m_name;
     }
 }
 

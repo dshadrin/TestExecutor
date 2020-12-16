@@ -15,20 +15,55 @@ TestExecutor::TestExecutor(QWidget *parent) :
 {
     ui.setupUi(this);
 
+    // run logger
     auto& logger = m_config->GetSettings().get_child( "logger.client" );
-    CLogClient::Get( logger );
-    ui.tabWidget->addTab( new CLogger( logger, this ), QString::fromStdString( logger.get<std::string>( "name", "Logger" ) ) );
+    try
+    {
+        CLogClient::Get( logger );
+        ui.tabWidget->addTab( new CLogger( logger, this ), QString::fromStdString( logger.get<std::string>( "name", "Logger" ) ) );
+    }
+    catch (const std::exception& e)
+    {
+        qDebug() << "Logger is not available: " << e.what();
+        throw;
+    }
 
+    // run console
     m_console = new Console( this );
-    ui.tabWidget->addTab( m_console, "Console" );
     QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
+    ui.tabWidget->addTab( m_console, "Console" );
 
+    // run monitors
     auto& monitors = m_config->GetSettings().get_child( "test-monitor" );
     for (auto& it : monitors)
     {
-        ui.tabWidget->addTab( new CMonitor( m_ioCtx, it.second, this ), QString::fromStdString( it.second.get<std::string>( "name", it.first) ) );
+        CMonitor* monitor = nullptr;
+        try
+        {
+            monitor = new CMonitor( m_ioCtx, it.second, this );
+            if (!monitor->isConnect())
+            {
+                delete monitor;
+                monitor = nullptr;
+            }
+        }
+        catch (const std::exception&)
+        {
+            if (monitor)
+            {
+                delete monitor;
+                monitor = nullptr;
+            }
+        }
+
+        if (monitor)
+        {
+            QObject::connect( this, &TestExecutor::ShutdownMonitors, monitor, &CMonitor::shutdown );
+            ui.tabWidget->addTab( monitor, QString::fromStdString( it.second.get<std::string>( "name", it.first ) ) );
+        }
     }
 
+    // other settings
     readSettings();
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     QObject::connect( ui.actionOptions, SIGNAL( triggered() ), this, SLOT( OptionsDialog() ) );
@@ -37,13 +72,19 @@ TestExecutor::TestExecutor(QWidget *parent) :
     setWindowIcon( QIcon( ":/TestExecutor/common/editor.png" ) );
     setUnifiedTitleAndToolBarOnMac( true );
 
+    // get tests list
     m_config->SetWorkDirectory();
+#ifdef WIN32
     emit Run( "test_app -ln" );
+#else
+    emit Run( "./test_app -ln" );
+#endif
 }
 
 
 TestExecutor::~TestExecutor()
 {
+    emit ShutdownMonitors();
     m_ioCtx.stop();
     m_thread.join();
     CLogClient::Get()->Stop();
@@ -66,7 +107,11 @@ void TestExecutor::readSettings()
     const QByteArray geometry = QByteArray::fromBase64(QByteArray::fromStdString(m_config->GetSettings().get<std::string>(KEY_GEOMETRY, "")));
     if ( geometry.isEmpty() )
     {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+        const QRect availableGeometry = QApplication::desktop()->availableGeometry();
+#else
         const QRect availableGeometry = screen()->availableGeometry();
+#endif
         resize( availableGeometry.width() / 3, availableGeometry.height() / 2 );
         move( ( availableGeometry.width() - width() ) / 2,
             ( availableGeometry.height() - height() ) / 2 );
@@ -88,10 +133,15 @@ void TestExecutor::OptionsDialog()
     QScopedPointer<CConfigDialog> dlg(new CConfigDialog());
     if ( dlg )
     {
-        m_config->FillOptionsDialog( dlg.get() );
+#if (QT_VERSION < QT_VERSION_CHECK(5, 11, 0))
+        CConfigDialog* ptr = dlg.data();
+#else
+        CConfigDialog* ptr = dlg.get();
+#endif
+        m_config->FillOptionsDialog( ptr );
         if ( dlg->exec() == QDialog::Accepted )
         {
-            m_config->StoreOptionValues( dlg.get() );
+            m_config->StoreOptionValues( ptr );
         }
     }
 }

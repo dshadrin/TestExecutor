@@ -1,7 +1,7 @@
 #ifndef HAVE_ASPRINTF
 #include <stdarg.h>
 
-static int vasprintf( char** str, const char* fmt, va_list args )
+static int vaspf( char** str, const char* fmt, va_list args )
 {
     int size = 0;
     va_list tmpa;
@@ -48,7 +48,7 @@ extern "C" int asprintf( char** strp, const char* fmt, ... )
     va_start( args, fmt );
 
     // format and get size
-    size = vasprintf( strp, fmt, args );
+    size = vaspf( strp, fmt, args );
 
     // toss args
     va_end( args );

@@ -70,7 +70,7 @@ void CConfigDialog::addTestAppPath()
         fs::path path = fs::path( appPath ).parent_path();
         qPath = QString::fromStdString( path.string() );
     }
-    QString name = util::FindFile( qPath, tr("Find test application executable file"), tr("Executable (*.exe);;All files (*.*)"));
+    QString name = util::FindFile( qPath, tr("Find test application executable file"), tr("Executable (*.exe);;All files (*)"));
     uiConf.appEdit->setText(name);
 }
 
@@ -83,7 +83,7 @@ void CConfigDialog::addRunBeforePath()
         fs::path path = fs::path( appPath ).parent_path();
         qPath = QString::fromStdString( path.string() );
     }
-    QString name = util::FindFile( qPath, tr("Find run before executable file"), tr("Executable (*.exe);;All files (*.*)"));
+    QString name = util::FindFile( qPath, tr("Find run before executable file"), tr("Executable (*.exe);;All files (*)"));
     uiConf.runBeforeEdit->setText(name);
 }
 

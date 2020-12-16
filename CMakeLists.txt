@@ -60,28 +60,29 @@ message(STATUS "Boost COMPILER: ${Boost_COMPILER}")
 # Qt configuration
 ###
 if(WIN32)
-  if(MSVC)
-    message(STATUS "MSVC Version: " ${MSVC_VERSION})
-    if(${MSVC_VERSION} STRGREATER "1914")
-      set(USED_QT_PATH ${MSVC_QT_PATH})
-    else()
-      message(FATAL_ERROR "Unsupported MSVC version")
-    endif()
-  elseif(MINGW)
-    message(STATUS "MINGW toolset gcc")
-    set(USED_QT_PATH ${MINGW_QT_PATH})
-  elseif(UNIX)
-    message(STATUS "UNIX toolset gcc")
-    set(USED_QT_PATH ${UNIX_QT_PATH})
+if(MSVC)
+  message(STATUS "MSVC Version: " ${MSVC_VERSION})
+  if(${MSVC_VERSION} STRGREATER "1914")
+    set(USED_QT_PATH ${MSVC_QT_PATH})
+  else()
+    message(FATAL_ERROR "Unsupported MSVC version")
   endif()
-  set(ENV{CMAKE_PREFIX_PATH} "${USED_QT_PATH}/lib/cmake")
-  message(STATUS "CMAKE_PREFIX_PATH: " $ENV{CMAKE_PREFIX_PATH})
+elseif(MINGW)
+  message(STATUS "MINGW toolset gcc")
+  set(USED_QT_PATH ${MINGW_QT_PATH})
+elseif(UNIX)
+  message(STATUS "UNIX toolset gcc")
+  set(USED_QT_PATH ${UNIX_QT_PATH})
+endif()
+set(ENV{CMAKE_PREFIX_PATH} "${USED_QT_PATH}/lib/cmake")
+message(STATUS "CMAKE_PREFIX_PATH: " $ENV{CMAKE_PREFIX_PATH})
 endif()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Qt6 COMPONENTS Gui Core Widgets REQUIRED)
+message(STATUS "Use QT version: " ${PRJ_QT})
+find_package(${PRJ_QT} COMPONENTS Gui Core Widgets REQUIRED)
 
 set(SOURCES
   src/StdInc.cpp
@@ -128,8 +129,13 @@ set(FORMS
   ui/VarEdit.ui
 )
 
-qt6_add_resources(RESOURCES_R ${RESOURCES})
-qt6_wrap_ui(FORM_H ${FORMS})
+if(UNIX)
+  qt5_add_resources(RESOURCES_R ${RESOURCES})
+  qt5_wrap_ui(FORM_H ${FORMS})
+else()
+  qt6_add_resources(RESOURCES_R ${RESOURCES})
+  qt6_wrap_ui(FORM_H ${FORMS})
+endif()
 
 include_directories(${APP_ROOT_PATH})
 
@@ -144,7 +150,7 @@ endif()
 ###
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${FORM_H} ${RESOURCES_R})
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${APP_BUILD_PATH}/inc/StdInc.h)
-target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Gui Qt6::Widgets ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${PRJ_QT}::Core ${PRJ_QT}::Gui ${PRJ_QT}::Widgets ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${APP_ROOT_PATH}/inc ${APP_BUILD_PATH}/inc)
 
 if(MINGW)
@@ -152,7 +158,7 @@ if(MINGW)
 elseif(MSVC)
   target_link_libraries(${PROJECT_NAME} oscar utils)
 elseif(UNIX)
-  target_link_libraries(${PROJECT_NAME} logclient "-static")
+  target_link_libraries(${PROJECT_NAME} logclient -lpthread) #  -lstdc++fs
 endif()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${DestinationDir})

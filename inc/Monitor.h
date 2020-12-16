@@ -11,6 +11,8 @@ public:
     explicit CMonitor( boost::asio::io_context& ioCtx, const boost::property_tree::ptree& pt, QWidget *parent = 0);
     ~CMonitor();
 
+    bool isConnect() const { return m_isConnecting; }
+
 protected:
     void scrollDown();
     void keyPressEvent( QKeyEvent* );
@@ -43,6 +45,7 @@ private:
     std::string m_currentMessage;
     size_t m_msgSize;
     bool m_isLocked;
+    bool m_isConnecting;
     QStringList m_history;
     int m_historyPos;
     Qt::GlobalColor m_bgColor;
@@ -51,6 +54,9 @@ private:
     std::string m_name;
     QTextCharFormat m_charFormat;
     DECLARE_MODULE_TAG;
+
+public Q_SLOTS:
+    void shutdown();
 
 Q_SIGNALS:
     void onData( QString, const Qt::GlobalColor );

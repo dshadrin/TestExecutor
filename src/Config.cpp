@@ -130,7 +130,7 @@ void CConfig::StoreOptionValues( CConfigDialog* dlg )
 void CConfig::SetWorkDirectory()
 {
     auto appPath = ReadTestAppPath();
-    if (!appPath.empty())
+    if (!appPath.empty() && fs::exists(appPath))
     {
         fs::path p = fs::path(appPath).parent_path();
         fs::current_path( p );
@@ -138,6 +138,6 @@ void CConfig::SetWorkDirectory()
     }
     else
     {
-        LOG_WARN << "Test application path is empty";
+        LOG_WARN << "Test application path is empty or not existed: " << appPath;
     }
 }

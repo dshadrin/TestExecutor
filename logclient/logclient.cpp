@@ -9,7 +9,7 @@
 #include <sys/time.h>
 #endif
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(__linux__)
 #include <boost/asio.hpp>
 #endif
 
@@ -47,7 +47,7 @@ CLogClient::CLogClient(const boost::property_tree::ptree& pt) :
 
     if (!isConnected)
     {
-        Stop();
+//         Stop();
         APP_EXCEPTION_ERROR(GMSG << "Cannot connect to " << m_host << ":" << m_port);
     }
     else
@@ -142,12 +142,12 @@ bool CLogClient::Connect()
     if (ec.value() != 0)
     {
         status = false;
-//         std::cerr << "Logger connection error: " << ec.message() << std::endl;
+        std::cerr << "Logger connection error: " << ec.message() << std::endl;
     }
     else
     {
-//         std::cerr << "Logger client connected: " << m_socket.local_endpoint(ec).address().to_string() << ":" << m_socket.local_endpoint(ec).port() << " -> "
-//                                                  << m_socket.remote_endpoint(ec).address().to_string() << ":" << m_socket.remote_endpoint(ec).port() << std::endl ;
+        std::cerr << "Logger client connected: " << m_socket.local_endpoint(ec).address().to_string() << ":" << m_socket.local_endpoint(ec).port() << " -> "
+                                                 << m_socket.remote_endpoint(ec).address().to_string() << ":" << m_socket.remote_endpoint(ec).port() << std::endl ;
     }
 
     return status;

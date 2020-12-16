@@ -1,8 +1,8 @@
 #include "console.h"
 #include <QScrollBar>
 #include <QProcess>
-#include <QStringDecoder>
-#include <QStringEncoder>
+//#include <QStringDecoder>
+//#include <QStringEncoder>
 
 Console::Console(QWidget *parent) :
 	QPlainTextEdit(parent)
@@ -61,7 +61,11 @@ void Console::onEnter()
     emit onCommand(cmd);
 
     QProcess process;
+#ifdef WIN32
     process.start( "cmd", QStringList() << "/C" << cmd );
+#else
+    process.start( cmd );
+#endif
     if ( !process.waitForStarted() || !process.waitForFinished() )
     {
         return;
@@ -143,7 +147,11 @@ void Console::RunCommand( const std::string& rCmd)
     emit onCommand( cmd );
 
     QProcess process;
+#ifdef WIN32
     process.start( "cmd", QStringList() << "/C" << cmd );
+#else
+    process.start( cmd );
+#endif
     if (!process.waitForStarted() || !process.waitForFinished())
     {
         return;

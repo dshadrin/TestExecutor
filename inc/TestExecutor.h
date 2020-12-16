@@ -29,6 +29,7 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     void Run( const std::string& );
+    void ShutdownMonitors();
 
 private:
     Ui::TestExecutorClass ui;

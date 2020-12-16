@@ -1,5 +1,10 @@
 #include "timestamp.h"
 
+#ifndef WIN32
+#include <mutex>
+#include <cstring>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 const long ONE_SECOND_IN_MICROSECONDS = 1000000l;
 
@@ -32,9 +37,9 @@ void TS::ConvertTimestamp(timespec tv, tm* tmStruct, long* us, long deltaFromNow
 #ifdef WIN32
     localtime_s(tmStruct, &tv.tv_sec);
 #else
-    static sync::mutex mtx;
+    static std::mutex mtx;
     {
-        trd::unuque_lock lock(mtx);
+        std::unique_lock lock(mtx);
         memcpy(tmStruct, localtime(&tv.tv_sec), sizeof(struct tm));
     }
 #endif

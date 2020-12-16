@@ -35,16 +35,32 @@ void CVarEditor::findFolder()
         }
         else if (le->hasSelectedText())
         {
-            bool isInsertSeparator = le->selectionEnd() == oldText.length() ? false : true;
+            auto selectionEnd = [](QLineEdit* le) -> int
+            {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
+                return le->selectionStart() + le->selectedText().length();
+#else
+                return le->selectionEnd();
+#endif
+            };
+            auto selectionLength = [](QLineEdit* le) -> int
+            {
+#if (QT_VERSION < QT_VERSION_CHECK(5, 10, 0))
+                return le->selectedText().length();
+#else
+                return le->selectionLength();
+#endif
+            };
+            bool isInsertSeparator = selectionEnd(le) == oldText.length() ? false : true;
             if (le->selectionStart() > 0)
             {
                 fName.insert( 0, LIST_PATH_SEPARATOR );
             }
-            if (le->selectionEnd() < oldText.length())
+            if (selectionEnd(le) < oldText.length())
             {
                 fName.append( LIST_PATH_SEPARATOR );
             }
-            oldText.replace( le->selectionStart(), le->selectionLength(), fName );
+            oldText.replace( le->selectionStart(), selectionLength(le), fName );
             le->setText( oldText );
         }
         else

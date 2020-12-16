@@ -10,6 +10,11 @@ int main(int argc, char *argv[])
 {
     int result = -1;
 
+// #if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
+#if (QT_VERSION < QT_VERSION_CHECK(5, 13, 0))
+    qRegisterMetaType<Qt::GlobalColor>("GlobalColor");
+#endif
+
     try
     {
         fs::path confPath( fs::current_path() / fs::path(argv[0]).filename().replace_extension( ".json" ) );
