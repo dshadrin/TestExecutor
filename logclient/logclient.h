@@ -1,18 +1,22 @@
 #pragma once
 
-#include "StdInc.h"
+#include "qlog_interface.h"
 #include "utils/lockqueue.h"
 #include "utils/logbuilder.h"
 #include "oscar/flap_builder.h"
-#include <boost/asio.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <QObject>
+
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <thread>
+#include <mutex>
+#endif
 
 //////////////////////////////////////////////////////////////////////////
-class CLogClient : public QObject, boost::noncopyable
+class CLogClient : public QLogClient, boost::noncopyable
 {
-    Q_OBJECT
 public:
     CLogClient(const boost::property_tree::ptree& pt);
     ~CLogClient();
@@ -33,15 +37,12 @@ private:
     void CloseLogFile();
     void OpenNewLogFile(const std::string& namePrefix, const std::string& nameSuffix);
 
-Q_SIGNALS:
-    void PrintLog( const std::string& log );
-
 private:
-    boost::asio::io_service m_ioService;
+    boost::asio::io_context m_ioService;
     CLockQueue<std::shared_ptr<SLogPackage>> m_queue;
 
-    sync::mutex m_mutex;
-    trd::thread m_thread;
+    std::mutex m_mutex;
+    std::thread m_thread;
     bool m_writeInProgress;
     bool m_stopInProgress;
     ELoggingMode m_loggingMode;

@@ -90,5 +90,8 @@ namespace chr = boost;
 #include <boost/algorithm/string.hpp>
 namespace ba = boost::algorithm;
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+#include <boost/asio.hpp>
+
 //////////////////////////////////////////////////////////////////////////
 #endif // __RPC_API_STORAGE_H

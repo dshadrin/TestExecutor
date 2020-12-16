@@ -1,4 +1,3 @@
-#include "StdInc.h"
 #include "VarEditDialog.h"
 #include "common.h"
 

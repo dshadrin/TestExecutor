@@ -1,4 +1,3 @@
-#include "StdInc.h"
 #include "common.h"
 #include "Config.h"
 #include <QFileDialog>

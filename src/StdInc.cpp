@@ -1,5 +1,3 @@
-#include "StdInc.h"
-
 #ifndef HAVE_ASPRINTF
 #include <stdarg.h>
 

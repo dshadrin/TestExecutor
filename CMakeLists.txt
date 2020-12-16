@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.19)
 
 include(project.cmake)
 project(${PROJECT_NAME} LANGUAGES CXX C)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 11)
 
 set(APP_BUILD_PATH "${CMAKE_CURRENT_BINARY_DIR}")
 message(STATUS "Build path: " ${APP_BUILD_PATH})
@@ -25,8 +26,8 @@ if(MSVC)
   set(Boost_USE_STATIC_LIBS ON)
 elseif(MINGW)
   message(STATUS "Toolset: gcc mingw")
-  add_definitions(-DWINVER=0x0502)
-  add_definitions(-D_WIN32_WINNT=0x0502)
+#  add_definitions(-DWINVER=0x0502)
+#  add_definitions(-D_WIN32_WINNT=0x0502)
   add_definitions(-D__STRICT_ANSI__)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_COMPILER ${MINGW_BOOST_COMPILER})
@@ -36,17 +37,19 @@ elseif(UNIX)
 endif()
 set(Boost_USE_MULTITHREADED ON)
 
-list(APPEND BOOST_LIB_LIST system)
+list(APPEND BOOST_LIB_LIST system date_time)
 if(NOT HAVE_STD_FILESYSTEM)
+  message(STATUS "Use boost::filesystem")
   list(APPEND BOOST_LIB_LIST filesystem)
 endif()
-#if(NOT HAVE_STD_REGEX)
+if(NOT HAVE_STD_REGEX)
+  message(STATUS "Use boost::regex")
   list(APPEND BOOST_LIB_LIST regex)
-#endif()
+endif()
 if(NOT HAVE_STD_THREAD)
+  message(STATUS "Use boost::thread")
   list(APPEND BOOST_LIB_LIST thread)
 endif()
-list(APPEND BOOST_LIB_LIST date_time)
 
 find_package(Boost ${PRJ_BOOST_VERSION} COMPONENTS ${BOOST_LIB_LIST} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -105,6 +108,16 @@ set(HEADERS
   inc/Logger.h
 )
 
+if(MSVC)
+  list(APPEND HEADERS
+    logclient/logclient.h
+    logclient/qlog_interface.h
+    )
+  list(APPEND SOURCES
+    logclient/logclient.cpp
+    )
+endif()
+
 set(RESOURCES
   res/${PROJECT_NAME}.qrc
 )
@@ -122,16 +135,24 @@ include_directories(${APP_ROOT_PATH})
 
 add_subdirectory(oscar)
 add_subdirectory(utils)
-add_subdirectory(logclient)
+if(NOT MSVC)
+  add_subdirectory(logclient)
+endif()
 
 ###
 # App configuration
 ###
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${FORM_H} ${RESOURCES_R})
-target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Gui Qt6::Widgets ${Boost_LIBRARIES} logclient)
+target_precompile_headers(${PROJECT_NAME} PUBLIC ${APP_BUILD_PATH}/inc/StdInc.h)
+target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Gui Qt6::Widgets ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${APP_ROOT_PATH}/inc ${APP_BUILD_PATH}/inc)
+
 if(MINGW)
-  target_link_libraries(${PROJECT_NAME} "-static")
+  target_link_libraries(${PROJECT_NAME} logclient "-static")
+elseif(MSVC)
+  target_link_libraries(${PROJECT_NAME} oscar utils)
+elseif(UNIX)
+  target_link_libraries(${PROJECT_NAME} logclient "-static")
 endif()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${DestinationDir})

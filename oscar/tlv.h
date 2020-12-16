@@ -5,17 +5,12 @@
 //     -----------------------------------------
 //              ......	TLV data
 ///////////////////////////////////////////////////////////////////////////
-#include "StdInc.h"
 #include <type_traits>
 #include <limits>
+#include <vector>
+#include <string>
 #include <cassert>
 #include <boost/endian/conversion.hpp>
-
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#undef min
-#undef max
 
 ///////////////////////////////////////////////////////////////////////////
 #define BITS_IN_BYTE 8
@@ -143,7 +138,7 @@ namespace oscar
             size_t _Count,
             base_symbol_t* _Ptr)
         {
-            assert(_Count < std::numeric_limits<uint16_t>::max() / sizeof(T));
+            assert(_Count < (std::numeric_limits<uint16_t>::max)() / sizeof(T));
             set_type(_Type, _Ptr);
             set_data_size<T>(_Ptr, static_cast<T>(0), _Count);
             store_data_array<T>(_Ptr, _PVal, (uint16_t)_Count);

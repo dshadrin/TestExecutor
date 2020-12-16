@@ -1,4 +1,3 @@
-#include "StdInc.h"
 #include "console.h"
 #include <QScrollBar>
 #include <QProcess>

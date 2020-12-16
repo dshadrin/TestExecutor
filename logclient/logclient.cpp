@@ -1,13 +1,16 @@
-// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 #include "logclient.h"
 #include "utils/strace_exception.h"
 #include "utils/timestamp.h"
 #include <boost/property_tree/xml_parser.hpp>
 #include <ctime>
+#include <iostream>
 
 #ifndef WIN32
 #include <sys/time.h>
+#endif
+
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#include <boost/asio.hpp>
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,11 +67,11 @@ CLogClient::~CLogClient()
 
 CLogClient* CLogClient::Get( const boost::property_tree::ptree& pt )
 {
-    static sync::mutex mtx;
+    static std::mutex mtx;
 
     if (!s_logClientPtr)
     {
-        trd::unique_lock lock(mtx);
+        std::unique_lock lock(mtx);
         if (!s_logClientPtr)
         {
             s_logClientPtr.reset(new CLogClient(pt));
@@ -118,13 +121,13 @@ void CLogClient::WaitQueueEmpty()
 {
     while (!m_queue.empty())
     {
-        trd::this_thread::sleep_for(chr::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
 void CLogClient::ThreadLogClient()
 {
-    boost::asio::io_service::work work(m_ioService);
+    boost::asio::io_context::work work(m_ioService);
     m_ioService.run();
 }
 
@@ -164,7 +167,7 @@ void CLogClient::WriteHandler(const boost::system::error_code &ec, std::size_t b
         else
         {
             {
-                trd::unique_lock lock(m_mutex);
+                std::unique_lock lock(m_mutex);
                 m_writeInProgress = false;
             }
             WriteNextMessage();
@@ -178,7 +181,7 @@ void CLogClient::WriteHandler(const boost::system::error_code &ec, std::size_t b
 
 void CLogClient::WriteNextMessage()
 {
-    trd::unique_lock lock(m_mutex);
+    std::unique_lock lock(m_mutex);
     if (!m_writeInProgress)
     {
         boost::optional<std::shared_ptr<SLogPackage>> op = m_queue.pop_try(0);

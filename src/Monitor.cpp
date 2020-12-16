@@ -1,8 +1,6 @@
-#include "StdInc.h"
 #include "Monitor.h"
 #include "common.h"
 #include <QScrollBar>
-#include <boost/asio.hpp>
 
 #define IN_BUFFER_SIZE 512
 IMPLEMENT_MODULE_TAG( CMonitor, "QMON" );

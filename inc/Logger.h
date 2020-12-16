@@ -1,5 +1,4 @@
 #pragma once
-#include "StdInc.h"
 #include <QPlainTextEdit>
 #include <boost/property_tree/ptree.hpp>
 

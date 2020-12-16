@@ -6,7 +6,6 @@
 #include "ConfigDialog.h"
 #include <QSettings>
 #include <QtWidgets>
-#include <boost/asio.hpp>
 
 TestExecutor::TestExecutor(QWidget *parent) :
     QMainWindow( parent ),
@@ -80,7 +79,7 @@ void TestExecutor::readSettings()
 
 void TestExecutor::ThreadIO()
 {
-    boost::asio::io_service::work work( m_ioCtx );
+    boost::asio::io_context::work work( m_ioCtx );
     m_ioCtx.run();
 }
 

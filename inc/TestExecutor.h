@@ -1,10 +1,8 @@
 #pragma once
 
-#include "StdInc.h"
 #include "Config.h"
-#include <QMainWindow>
 #include "ui_TestExecutor.h"
-#include <boost/asio/io_context.hpp>
+#include <QMainWindow>
 
 class Console;
 

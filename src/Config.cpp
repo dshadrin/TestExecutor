@@ -1,4 +1,3 @@
-#include "StdInc.h"
 #include "Config.h"
 #include "ConfigDialog.h"
 #include "boost/property_tree/json_parser.hpp"

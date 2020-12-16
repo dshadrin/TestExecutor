@@ -8,7 +8,6 @@
 //              ......	FLAP data
 ///////////////////////////////////////////////////////////////////////////
 
-#include "StdInc.h"
 #include "proto.h"
 #include "snac.h"
 

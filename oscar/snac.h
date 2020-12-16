@@ -8,17 +8,11 @@
 //              ......	    SNAC data
 ///////////////////////////////////////////////////////////////////////////
 
-#include "StdInc.h"
 #include "tlv.h"
 #include <tuple>
 #include <limits>
 #include <numeric>
-
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#undef min
-#undef max
+#include <stdexcept>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -84,7 +78,7 @@ namespace oscar
             void calc_size( const size_t* array, size_t count )
             {
                 size = std::accumulate( array, array + count, SNAC_HEADER_SIZE );
-                if ( size > std::numeric_limits<uint16_t>::max( ) )
+                if ( size > (std::numeric_limits<uint16_t>::max)( ) )
                 {
                     throw std::runtime_error( "Overflow SNAC size" );
                 }

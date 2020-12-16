@@ -1,7 +1,6 @@
-// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 #include "logbuilder.h"
 #include "timestamp.h"
+#include <boost/algorithm/string.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 int8_t CLogMessageBuilder::s_logChannel = LOG_CLIENT_CHANNEL;

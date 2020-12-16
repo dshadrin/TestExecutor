@@ -1,7 +1,7 @@
 #pragma once
 
-#include "StdInc.h"
 #include <ctime>
+#include <string>
 
 // Function for timestamp operations
 namespace TS

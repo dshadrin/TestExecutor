@@ -1,4 +1,3 @@
-#include "StdInc.h"
 #include "TestExecutor.h"
 #include <QApplication>
 #include <QSettings>

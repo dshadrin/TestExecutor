@@ -1,5 +1,3 @@
-// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 #include "timestamp.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,7 +45,7 @@ void TS::ConvertTimestamp(timespec tv, tm* tmStruct, long* us, long deltaFromNow
 struct timespec TS::GetTimestamp()
 {
     timespec tv;
-#ifdef MINGW
+#if defined(__MINGW32__) || defined(__MINGW32__)
     clock_gettime(CLOCK_MONOTONIC, &tv);
 #else
     timespec_get(&tv, TIME_UTC);

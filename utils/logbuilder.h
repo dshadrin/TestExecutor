@@ -1,8 +1,9 @@
 #pragma once
 
-#include "StdInc.h"
 #include "lockqueue.h"
 #include "timestamp.h"
+#include <sstream>
+#include <boost/noncopyable.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 #define LOG_UNKNOWN_CHANNEL        -1

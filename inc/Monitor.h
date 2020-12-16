@@ -1,10 +1,7 @@
 #pragma once
-#include "StdInc.h"
 #include "logclient/logclient.h"
 #include <QtGui>
 #include <QPlainTextEdit>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 class CMonitor : public QPlainTextEdit

@@ -1,6 +1,5 @@
 #pragma once
 //////////////////////////////////////////////////////////////////////////
-#include "StdInc.h"
 #include "snac.h"
 #include "proto.h"
 #include "flap_parser.h"
