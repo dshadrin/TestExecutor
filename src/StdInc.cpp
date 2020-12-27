@@ -1,4 +1,3 @@
-#ifndef HAVE_ASPRINTF
 #include <stdarg.h>
 
 static int vaspf( char** str, const char* fmt, va_list args )
@@ -39,12 +38,13 @@ static int vaspf( char** str, const char* fmt, va_list args )
     return size;
 }
 
+#ifndef HAVE_ASPRINTF
 extern "C" int asprintf( char** strp, const char* fmt, ... )
 {
     int size = 0;
     va_list args;
 
-    // init variadic argumens
+    // init variadic arguments
     va_start( args, fmt );
 
     // format and get size
@@ -56,3 +56,23 @@ extern "C" int asprintf( char** strp, const char* fmt, ... )
     return size;
 }
 #endif 
+
+std::string StringFormat( const char* fmt, ... )
+{
+    char* str = nullptr;
+    va_list args;
+    // init variadic arguments
+    va_start( args, fmt );
+    // format and get size
+    vaspf( &str, fmt, args );
+    // toss args
+    va_end( args );
+
+    std::string ret;
+    if (str != nullptr)
+    {
+        ret = str;
+        free( str );
+    }
+    return ret;
+}

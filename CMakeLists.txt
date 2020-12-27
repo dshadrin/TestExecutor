@@ -84,11 +84,13 @@ message(STATUS "Use QT version: " ${PRJ_QT})
 find_package(${PRJ_QT} COMPONENTS Gui Core Widgets REQUIRED)
 
 set(SSH_SRC
-  src/ssh/Errors.cpp
+  src/ssh/SshTypes.cpp
+  src/ssh/SshSession.cpp
   )
 
 set(SSH_INC
-  src/ssh/Errors.h
+  src/ssh/SshTypes.h
+  src/ssh/SshSession.h
   )
 
 set(SOURCES

@@ -49,7 +49,8 @@
 
 #ifndef HAVE_ASPRINTF
 extern "C" int asprintf(char **strp, const char *fmt, ...);
-#endif 
+#endif
+std::string StringFormat( const char* fmt, ... );
 
 #ifdef HAVE_STD_FILESYSTEM
 #include <filesystem>
