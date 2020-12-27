@@ -1,5 +1,5 @@
 #include "Monitor.h"
-#include "common.h"
+#include "Common.h"
 #include <QScrollBar>
 
 #define IN_BUFFER_SIZE 512

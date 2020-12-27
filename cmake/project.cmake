@@ -4,6 +4,9 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 set(DestinationDir ${CMAKE_SOURCE_DIR}/dist)
 message(STATUS "DestinationDir: ${DestinationDir}")
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 90)
+
 if(UNIX)
     set(PRJ_BOOST_VERSION "1.69")
     set(PRJ_QT "Qt5")

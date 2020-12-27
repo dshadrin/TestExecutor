@@ -1,8 +1,9 @@
 #include "TestExecutor.h"
-#include "console.h"
+#include "Console.h"
+#include "QConsole.h"
 #include "Monitor.h"
 #include "Logger.h"
-#include "logclient/logclient.h"
+#include "logclient/LogClient.h"
 #include "ConfigDialog.h"
 #include <QSettings>
 #include <QtWidgets>
@@ -32,6 +33,11 @@ TestExecutor::TestExecutor(QWidget *parent) :
     m_console = new Console( this );
     QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
     ui.tabWidget->addTab( m_console, "Console" );
+
+    // run qconsole
+    QConsole* qConsole = new QConsole( this, "#>" );
+//     QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
+    ui.tabWidget->addTab( qConsole, "QConsole" );
 
     // run monitors
     auto& monitors = m_config->GetSettings().get_child( "test-monitor" );

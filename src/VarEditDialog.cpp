@@ -1,5 +1,5 @@
 #include "VarEditDialog.h"
-#include "common.h"
+#include "Common.h"
 
 //////////////////////////////////////////////////////////////////////////
 CVarEditor::CVarEditor( const QString& name, QWidget* parent)

@@ -1,5 +1,5 @@
 #include "ConfigDialog.h"
-#include "common.h"
+#include "Common.h"
 #include "VarEditDialog.h"
 #include <QTableWidget>
 #include <QMessageBox>

@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
 
-include(project.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+include(project)
 project(${PROJECT_NAME} LANGUAGES CXX C)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_C_STANDARD 11)
 
 set(APP_BUILD_PATH "${CMAKE_CURRENT_BINARY_DIR}")
 message(STATUS "Build path: " ${APP_BUILD_PATH})
@@ -11,7 +10,7 @@ message(STATUS "Build path: " ${APP_BUILD_PATH})
 set(APP_SOURCE_PATH "${CMAKE_SOURCE_DIR}")
 message(STATUS "Source path: " ${APP_SOURCE_PATH})
 
-include(config.cmake)
+include(config)
 
 ###
 # Boost & platform configuration
@@ -84,26 +83,38 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message(STATUS "Use QT version: " ${PRJ_QT})
 find_package(${PRJ_QT} COMPONENTS Gui Core Widgets REQUIRED)
 
+set(SSH_SRC
+  src/ssh/Errors.cpp
+  )
+
+set(SSH_INC
+  src/ssh/Errors.h
+  )
+
 set(SOURCES
+  ${SSH_SRC}
   src/StdInc.cpp
   src/main.cpp
   src/${PROJECT_NAME}.cpp
   src/Config.cpp
   src/ConfigDialog.cpp
-  src/console.cpp
-  src/common.cpp
+  src/Console.cpp
+  src/QConsole.cpp
+  src/Common.cpp
   src/VarEditDialog.cpp
   src/Monitor.cpp
   src/Logger.cpp
 )
 
 set(HEADERS
+  ${SSH_INC}
   ${APP_BUILD_PATH}/inc/StdInc.h
   inc/${PROJECT_NAME}.h
   inc/Config.h
   inc/ConfigDialog.h
-  inc/console.h
-  inc/common.h
+  inc/Console.h
+  inc/QConsole.h
+  inc/Common.h
   inc/VarEditDialog.h
   inc/Monitor.h
   inc/Logger.h
@@ -111,11 +122,11 @@ set(HEADERS
 
 if(MSVC)
   list(APPEND HEADERS
-    logclient/logclient.h
-    logclient/qlog_interface.h
+    logclient/LogClient.h
+    logclient/QLogInterface.h
     )
   list(APPEND SOURCES
-    logclient/logclient.cpp
+    logclient/LogClient.cpp
     )
 endif()
 
@@ -139,6 +150,7 @@ endif()
 
 include_directories(${APP_ROOT_PATH})
 
+add_subdirectory(libssh2)
 add_subdirectory(oscar)
 add_subdirectory(utils)
 if(NOT MSVC)
@@ -150,7 +162,7 @@ endif()
 ###
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${FORM_H} ${RESOURCES_R})
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${APP_BUILD_PATH}/inc/StdInc.h)
-target_link_libraries(${PROJECT_NAME} ${PRJ_QT}::Core ${PRJ_QT}::Gui ${PRJ_QT}::Widgets ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${PRJ_QT}::Core ${PRJ_QT}::Gui ${PRJ_QT}::Widgets libssh2 ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${APP_ROOT_PATH}/inc ${APP_BUILD_PATH}/inc)
 
 if(MINGW)

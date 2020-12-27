@@ -1,6 +1,6 @@
 #include "Logger.h"
-#include "common.h"
-#include "logclient/logclient.h"
+#include "Common.h"
+#include "logclient/LogClient.h"
 #include <QScrollBar>
 
 CLogger::CLogger( const boost::property_tree::ptree& pt, QWidget *parent ) :

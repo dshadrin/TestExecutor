@@ -1,6 +1,6 @@
 #pragma once
 
-#include "qlog_interface.h"
+#include "QLogInterface.h"
 #include "utils/lockqueue.h"
 #include "utils/logbuilder.h"
 #include "oscar/flap_builder.h"

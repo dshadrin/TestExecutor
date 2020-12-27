@@ -1,4 +1,4 @@
-#include "logclient.h"
+#include "LogClient.h"
 #include "utils/strace_exception.h"
 #include "utils/timestamp.h"
 #include <boost/property_tree/xml_parser.hpp>

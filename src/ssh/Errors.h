@@ -1,0 +1,12 @@
+/*
+* Copyright (C) 2019 Dmitriy Shadrin
+* All rights reserved.
+*/
+
+#pragma once
+
+
+//////////////////////////////////////////////////////////////////////////
+namespace util
+{
+}
