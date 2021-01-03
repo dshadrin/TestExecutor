@@ -11,6 +11,7 @@ set(APP_SOURCE_PATH "${CMAKE_SOURCE_DIR}")
 message(STATUS "Source path: " ${APP_SOURCE_PATH})
 
 include(config)
+include(Findyajl)
 
 ###
 # Boost & platform configuration
