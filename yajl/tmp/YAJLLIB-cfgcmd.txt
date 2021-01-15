@@ -1,1 +1,0 @@
-cmd='D:/Qt/Tools/CMake_64/bin/cmake.exe;-DCMAKE_C_FLAGS_DEBUG=/Zi /Ob0 /Od /RTC1;-DCMAKE_C_FLAGS_RELEASE=/O2 /Ob2 /DNDEBUG;-DCMAKE_INSTALL_PREFIX=E:/Projects/TestExecutor/build/third_party;-DCMAKE_BUILD_TYPE=;-GVisual Studio 16 2019;-Ax64;-DCMAKE_GENERATOR_INSTANCE:INTERNAL=C:/Program Files (x86)/Microsoft Visual Studio/2019/Community;<SOURCE_DIR><SOURCE_SUBDIR>'
