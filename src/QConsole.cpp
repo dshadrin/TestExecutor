@@ -17,11 +17,7 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <QScrollBar>
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#include <QDesktopWidget>
-#else
 #include <QScreen>
-#endif
 
 //#define USE_POPUP_COMPLETER
 #define WRITE_ONLY QIODevice::WriteOnly
@@ -136,13 +132,9 @@ int PopupCompleter::exec(QTextEdit *parent)
     QSize popupSizeHint = this->sizeHint();
     QRect cursorRect = parent->cursorRect();
     QPoint globalPt = parent->mapToGlobal(cursorRect.bottomRight());
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    QDesktopWidget* dsk = QApplication::desktop();
-    QRect screenGeom = dsk->screenGeometry( dsk->screenNumber( this ) );
-#else
     QScreen* dsk = screen();
     QRect screenGeom = dsk->geometry( );
-#endif
+
     if (globalPt.y() + popupSizeHint.height() > screenGeom.height()) {
         globalPt = parent->mapToGlobal(cursorRect.topRight());
         globalPt.setY(globalPt.y() - popupSizeHint.height());
@@ -238,13 +230,8 @@ QConsole::QConsole(QWidget *parent, const QString &welcomeText)
 
     //resets the console
     reset(welcomeText);
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    const int tabwidth = QFontMetrics( currentFont() ).width( 'a' ) * 4;
-    setTabStopWidth( tabwidth );
-#else
     const qreal tabwidth = QFontMetrics( currentFont() ).averageCharWidth() * 4;
     setTabStopDistance( tabwidth );
-#endif
 }
 
 //Sets the prompt and cache the prompt length to optimize the processing speed
@@ -660,11 +647,7 @@ void QConsole::insertFromMimeData(const QMimeData *source)
 void QConsole::mousePressEvent(QMouseEvent* event)
 {
     oldPosition = textCursor().position();
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-    if (event->button() == Qt::MidButton)
-#else
     if (event->button() == Qt::MiddleButton)
-#endif
     {
         copy();
         QTextCursor cursor = cursorForPosition(event->pos());

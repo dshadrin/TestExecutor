@@ -13,11 +13,6 @@ const char LIST_PATH_SEPARATOR = ';';
 const char LIST_PATH_SEPARATOR = ':';
 #endif
 
-// #if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
-#if (QT_VERSION < QT_VERSION_CHECK(5, 13, 0))
-Q_DECLARE_METATYPE(Qt::GlobalColor);
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 namespace util
 {

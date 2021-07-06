@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "JsonConfig.h"
 #include "ui_TestExecutor.h"
 #include <QMainWindow>
 
@@ -14,7 +14,7 @@ public:
     TestExecutor(QWidget *parent = Q_NULLPTR);
     ~TestExecutor();
 
-    CConfig* GetConfig() { return m_config; }
+    CJsonConfig* GetConfig() { return m_config; }
 
 protected:
     void closeEvent( QCloseEvent* event ) override;
@@ -33,7 +33,7 @@ Q_SIGNALS:
 
 private:
     Ui::TestExecutorClass ui;
-    CConfig* m_config;
+    CJsonConfig* m_config;
     boost::asio::io_context m_ioCtx;
     trd::thread m_thread;
     Console* m_console;

@@ -4,30 +4,30 @@
 #include "Monitor.h"
 #include "Logger.h"
 #include "logclient/LogClient.h"
-#include "ConfigDialog.h"
+#include "JsonConfigDialog.h"
 #include <QSettings>
 #include <QtWidgets>
 
 TestExecutor::TestExecutor(QWidget *parent) :
     QMainWindow( parent ),
-    m_config(new CConfig(this)),
+    m_config(new CJsonConfig(this)),
     m_thread( std::bind( &TestExecutor::ThreadIO, this ) ),
     m_console(nullptr)
 {
     ui.setupUi(this);
 
     // run logger
-    auto& logger = m_config->GetSettings().get_child( "logger.client" );
-    try
-    {
-        CLogClient::Get( logger );
-        ui.tabWidget->addTab( new CLogger( logger, this ), QString::fromStdString( logger.get<std::string>( "name", "Logger" ) ) );
-    }
-    catch (const std::exception& e)
-    {
-        qDebug() << "Logger is not available: " << e.what();
-        throw;
-    }
+//     auto& logger = m_config->GetSettings().get_child( "logger.client" );
+//     try
+//     {
+//         CLogClient::Get( logger );
+//         ui.tabWidget->addTab( new CLogger( logger, this ), QString::fromStdString( logger.get<std::string>( "name", "Logger" ) ) );
+//     }
+//     catch (const std::exception& e)
+//     {
+//         qDebug() << "Logger is not available: " << e.what();
+//         throw;
+//     }
 
     // run console
     m_console = new Console( this );
@@ -40,34 +40,34 @@ TestExecutor::TestExecutor(QWidget *parent) :
     ui.tabWidget->addTab( qConsole, "QConsole" );
 
     // run monitors
-    auto& monitors = m_config->GetSettings().get_child( "test-monitor" );
-    for (auto& it : monitors)
-    {
-        CMonitor* monitor = nullptr;
-        try
-        {
-            monitor = new CMonitor( m_ioCtx, it.second, this );
-            if (!monitor->isConnect())
-            {
-                delete monitor;
-                monitor = nullptr;
-            }
-        }
-        catch (const std::exception&)
-        {
-            if (monitor)
-            {
-                delete monitor;
-                monitor = nullptr;
-            }
-        }
-
-        if (monitor)
-        {
-            QObject::connect( this, &TestExecutor::ShutdownMonitors, monitor, &CMonitor::shutdown );
-            ui.tabWidget->addTab( monitor, QString::fromStdString( it.second.get<std::string>( "name", it.first ) ) );
-        }
-    }
+//     auto& monitors = m_config->GetSettings().get_child( "test-monitor" );
+//     for (auto& it : monitors)
+//     {
+//         CMonitor* monitor = nullptr;
+//         try
+//         {
+//             monitor = new CMonitor( m_ioCtx, it.second, this );
+//             if (!monitor->isConnect())
+//             {
+//                 delete monitor;
+//                 monitor = nullptr;
+//             }
+//         }
+//         catch (const std::exception&)
+//         {
+//             if (monitor)
+//             {
+//                 delete monitor;
+//                 monitor = nullptr;
+//             }
+//         }
+// 
+//         if (monitor)
+//         {
+//             QObject::connect( this, &TestExecutor::ShutdownMonitors, monitor, &CMonitor::shutdown );
+//             ui.tabWidget->addTab( monitor, QString::fromStdString( it.second.get<std::string>( "name", it.first ) ) );
+//         }
+//     }
 
     // other settings
     readSettings();
@@ -79,7 +79,7 @@ TestExecutor::TestExecutor(QWidget *parent) :
     setUnifiedTitleAndToolBarOnMac( true );
 
     // get tests list
-    m_config->SetWorkDirectory();
+//     m_config->SetWorkDirectory();
 #ifdef WIN32
     emit Run( "test_app -ln" );
 #else
@@ -93,7 +93,7 @@ TestExecutor::~TestExecutor()
     emit ShutdownMonitors();
     m_ioCtx.stop();
     m_thread.join();
-    CLogClient::Get()->Stop();
+//     CLogClient::Get()->Stop();
 }
 
 void TestExecutor::closeEvent( QCloseEvent* event )
@@ -104,20 +104,15 @@ void TestExecutor::closeEvent( QCloseEvent* event )
 
 void TestExecutor::writeSettings()
 {
-    m_config->GetSettings().put(KEY_GEOMETRY, saveGeometry().toBase64().toStdString() );
-    m_config->WriteJsonConfig();
+    m_config->SaveGeometry( saveGeometry().toBase64().toStdString() );
 }
 
 void TestExecutor::readSettings()
 {
-    const QByteArray geometry = QByteArray::fromBase64(QByteArray::fromStdString(m_config->GetSettings().get<std::string>(KEY_GEOMETRY, "")));
+    const QByteArray geometry = QByteArray::fromBase64( QByteArray::fromStdString( m_config->GetGeometry() ) );
     if ( geometry.isEmpty() )
     {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-        const QRect availableGeometry = QApplication::desktop()->availableGeometry();
-#else
         const QRect availableGeometry = screen()->availableGeometry();
-#endif
         resize( availableGeometry.width() / 3, availableGeometry.height() / 2 );
         move( ( availableGeometry.width() - width() ) / 2,
             ( availableGeometry.height() - height() ) / 2 );
@@ -136,18 +131,14 @@ void TestExecutor::ThreadIO()
 
 void TestExecutor::OptionsDialog()
 {
-    QScopedPointer<CConfigDialog> dlg(new CConfigDialog());
+    QScopedPointer<CJsonConfigDialog> dlg(new CJsonConfigDialog());
     if ( dlg )
     {
-#if (QT_VERSION < QT_VERSION_CHECK(5, 11, 0))
-        CConfigDialog* ptr = dlg.data();
-#else
-        CConfigDialog* ptr = dlg.get();
-#endif
-        m_config->FillOptionsDialog( ptr );
+        CJsonConfigDialog* ptr = dlg.get();
+        dlg->InitDialog( m_config );
         if ( dlg->exec() == QDialog::Accepted )
         {
-            m_config->StoreOptionValues( ptr );
+//             m_config->StoreOptionValues( ptr );
         }
     }
 }

@@ -36,7 +36,7 @@ elseif(UNIX)
 endif()
 set(Boost_USE_MULTITHREADED ON)
 
-list(APPEND BOOST_LIB_LIST system date_time)
+list(APPEND BOOST_LIB_LIST system date_time json)
 if(NOT HAVE_STD_FILESYSTEM)
   message(STATUS "Use boost::filesystem")
   list(APPEND BOOST_LIB_LIST filesystem)
@@ -100,6 +100,8 @@ set(SOURCES
   src/${PROJECT_NAME}.cpp
   src/Config.cpp
   src/ConfigDialog.cpp
+  src/JsonConfig.cpp
+  src/JsonConfigDialog.cpp
   src/Console.cpp
   src/QConsole.cpp
   src/Common.cpp
@@ -114,6 +116,8 @@ set(HEADERS
   inc/${PROJECT_NAME}.h
   inc/Config.h
   inc/ConfigDialog.h
+  inc/JsonConfig.h
+  inc/JsonConfigDialog.h
   inc/Console.h
   inc/QConsole.h
   inc/Common.h
@@ -139,6 +143,7 @@ set(RESOURCES
 set(FORMS
   ui/${PROJECT_NAME}.ui
   ui/SessionConfig.ui
+  ui/JsonConfig.ui
   ui/VarEdit.ui
 )
 
