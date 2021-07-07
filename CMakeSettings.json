@@ -1,18 +1,18 @@
-﻿{
+{
   "configurations": [
     {
       "name": "Linux-GCC-Debug",
       "generator": "Unix Makefiles",
       "configurationType": "Debug",
       "cmakeExecutable": "/home/dima/opt/Qt/Tools/CMake/bin/cmake",
-      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out" ],
-      "cmakeCommandArgs": "-Wno-dev",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", "out", ".build-linux", ".build-debug", ".build-release", ".build-mingw" ],
+      "cmakeCommandArgs": "-Wno-dev -DUNIX=ON",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "linux_x64" ],
       "intelliSenseMode": "linux-gcc-x64",
       "remoteMachineName": "${defaultRemoteMachineName}",
       "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}",
-      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/build",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/.build-linux",
       "remoteInstallRoot": "$HOME/.vs/${projectDirName}/dist",
       "remoteCopySources": true,
       "rsyncCommandArgs": "-t --delete --delete-excluded",
@@ -21,15 +21,65 @@
     },
     {
       "name": "x64-Debug",
-      "generator": "Ninja",
+      "generator": "Visual Studio 16 2019 Win64",
       "configurationType": "Debug",
-      "buildRoot": "${projectDir}\\build",
+      "cmakeExecutable": "d:/Qt/Tools/CMake_64/bin/cmake.exe",
+      "buildRoot": "${projectDir}\\.build-debug",
       "installRoot": "${projectDir}\\dist",
-      "cmakeCommandArgs": "-Wno-dev",
+      "cmakeCommandArgs": "-Wno-dev -DMSVC=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "inheritEnvironments": [ "msvc_x64" ],
+      "intelliSenseMode": "windows-msvc-x64"
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Visual Studio 16 2019 Win64",
+      "configurationType": "Release",
+      "cmakeExecutable": "d:/Qt/Tools/CMake_64/bin/cmake.exe",
+      "buildRoot": "${projectDir}\\.build-release",
+      "installRoot": "${projectDir}\\dist",
+      "cmakeCommandArgs": "-Wno-dev-DMSVC=ON",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "intelliSenseMode": "windows-msvc-x64"
+    },
+    {
+      "name": "Mingw64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "d:/Qt/Tools/CMake_64/bin/cmake.exe",
+      "buildRoot": "${projectDir}\\.build-mingw",
+      "installRoot": "${projectDir}\\dist",
+      "cmakeCommandArgs": "-DMINGW=ON",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "mingw_64" ],
+      "environments": [
+        {
+          "MINGW64_ROOT": "C:/msys64/mingw64",
+          "BIN_ROOT": "${env.MINGW64_ROOT}/bin",
+          "FLAVOR": "x86_64-w64-mingw32",
+          "TOOLSET_VERSION": "9.1.0",
+          "PATH": "${env.MINGW64_ROOT}/bin;${env.MINGW64_ROOT}/../usr/local/bin;${env.MINGW64_ROOT}/../usr/bin;${env.MINGW64_ROOT}/../bin;${env.PATH}",
+          "INCLUDE": "${env.INCLUDE};${env.MINGW64_ROOT}/include/c++/${env.TOOLSET_VERSION};${env.MINGW64_ROOT}/include/c++/${env.TOOLSET_VERSION}/tr1;${env.MINGW64_ROOT}/include/c++/${env.TOOLSET_VERSION}/${env.FLAVOR}",
+          "environment": "mingw_64"
+        }
+      ],
+      "variables": [
+        {
+          "name": "CMAKE_C_COMPILER",
+          "value": "${env.BIN_ROOT}/gcc.exe",
+          "type": "STRING"
+        },
+        {
+          "name": "CMAKE_CXX_COMPILER",
+          "value": "${env.BIN_ROOT}/g++.exe",
+          "type": "STRING"
+        }
+      ],
+      "intelliSenseMode": "windows-clang-x64"
     }
   ]
 }

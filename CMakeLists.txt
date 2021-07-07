@@ -50,10 +50,11 @@ if(NOT HAVE_STD_THREAD)
   list(APPEND BOOST_LIB_LIST thread)
 endif()
 
+message(STATUS "Boost Version: ${PRJ_BOOST_VERSION}")
+message(STATUS "Boost_COMPILER: ${Boost_COMPILER}")
 find_package(Boost ${PRJ_BOOST_VERSION} COMPONENTS ${BOOST_LIB_LIST} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 message(STATUS "Boost LIBRARIES: ${Boost_LIBRARIES}")
-message(STATUS "Boost COMPILER: ${Boost_COMPILER}")
 
 ###
 # Qt configuration

@@ -2,6 +2,8 @@ build/
 .build-msvc/
 .build-mingw/
 .build-linux/
+.build-debug/
+.build-release/
 dist/
 .idea/
 cmake-build-debug/
