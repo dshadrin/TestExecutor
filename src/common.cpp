@@ -1,4 +1,4 @@
-#include "common.h"
+#include "Common.h"
 #include "Config.h"
 #include <QFileDialog>
 

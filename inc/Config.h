@@ -1,7 +1,7 @@
 #pragma once
 
 //////////////////////////////////////////////////////////////////////////
-#include "logclient/logclient.h"
+#include "logclient/LogClient.h"
 #include <QSettings>
 #include <boost/property_tree/ptree.hpp>
 

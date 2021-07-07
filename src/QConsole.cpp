@@ -10,7 +10,7 @@
     (at your option) any later version.
 */
 
-#include "qconsole.h"
+#include "QConsole.h"
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
@@ -683,9 +683,9 @@ void QConsole::dragMoveEvent( QDragMoveEvent * event)
 {
     //Get a cursor for the actual mouse position
     QTextCursor cur = textCursor();
-    cur.setPosition(cursorForPosition(event->pos()).position());
+    cur.setPosition(cursorForPosition( event->position().toPoint() ).position());
 
-    if(!isInEditionZone(cursorForPosition(event->pos()).position()))
+    if(!isInEditionZone(cursorForPosition( event->position().toPoint() ).position()))
     {
         //Ignore the event if out of the editable zone
         event->ignore(cursorRect(cur));

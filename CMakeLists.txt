@@ -84,13 +84,13 @@ message(STATUS "Use QT version: " ${PRJ_QT})
 find_package(${PRJ_QT} COMPONENTS Gui Core Widgets REQUIRED)
 
 set(SSH_SRC
-  src/ssh/SshTypes.cpp
-  src/ssh/SshSession.cpp
+  src/SshTypes.cpp
+  src/SshSession.cpp
   )
 
 set(SSH_INC
-  src/ssh/SshTypes.h
-  src/ssh/SshSession.h
+  inc/SshTypes.h
+  inc/SshSession.h
   )
 
 set(SOURCES
@@ -147,17 +147,16 @@ set(FORMS
   ui/VarEdit.ui
 )
 
-if(UNIX)
-  qt5_add_resources(RESOURCES_R ${RESOURCES})
-  qt5_wrap_ui(FORM_H ${FORMS})
-else()
-  qt6_add_resources(RESOURCES_R ${RESOURCES})
-  qt6_wrap_ui(FORM_H ${FORMS})
-endif()
+qt6_add_resources(RESOURCES_R ${RESOURCES})
+qt6_wrap_ui(FORM_H ${FORMS})
 
 include_directories(${APP_ROOT_PATH})
 
+if(NOT UNIX)
 add_subdirectory(libssh2)
+endif()
+
+
 add_subdirectory(oscar)
 add_subdirectory(utils)
 if(NOT MSVC)
@@ -169,15 +168,15 @@ endif()
 ###
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${FORM_H} ${RESOURCES_R})
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${APP_BUILD_PATH}/inc/StdInc.h)
-target_link_libraries(${PROJECT_NAME} ${PRJ_QT}::Core ${PRJ_QT}::Gui ${PRJ_QT}::Widgets libssh2 ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${PRJ_QT}::Core ${PRJ_QT}::Gui ${PRJ_QT}::Widgets ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${APP_ROOT_PATH}/inc ${APP_BUILD_PATH}/inc)
 
 if(MINGW)
-  target_link_libraries(${PROJECT_NAME} logclient "-static")
+  target_link_libraries(${PROJECT_NAME} logclient libssh2 "-static")
 elseif(MSVC)
-  target_link_libraries(${PROJECT_NAME} oscar utils)
+  target_link_libraries(${PROJECT_NAME} oscar utils libssh2)
 elseif(UNIX)
-  target_link_libraries(${PROJECT_NAME} logclient -lpthread) #  -lstdc++fs
+  target_link_libraries(${PROJECT_NAME} logclient -lpthread -lssh2) #  -lstdc++fs
 endif()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${DestinationDir})
