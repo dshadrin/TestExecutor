@@ -2,9 +2,6 @@
 #include "JsonConfig.h"
 
 //////////////////////////////////////////////////////////////////////////
-extern const std::vector<SValueType> g_mapStrToKind;
-
-//////////////////////////////////////////////////////////////////////////
 CVarEditor::CVarEditor( const QString& name, QWidget* parent) :
     m_currentStrType(ETypeValue::string_value)
 {
@@ -14,10 +11,11 @@ CVarEditor::CVarEditor( const QString& name, QWidget* parent) :
     setAttribute( Qt::WA_CustomWhatsThis );
 
     int pos = 0;
-    for (auto& p : g_mapStrToKind)
+    QList<QString> types = CJsonConfig::GetValueTypesList();
+    for (auto& type : types)
     {
-        uiVarEdit.comboBoxTypeJson->addItem( p.name );
-        if (p.name == "STRING")
+        uiVarEdit.comboBoxTypeJson->addItem( type );
+        if (type == "STRING")
         {
             uiVarEdit.comboBoxTypeJson->setCurrentIndex( pos );
         }
@@ -105,10 +103,7 @@ void CVarEditor::findFolder()
 void CVarEditor::changedType( int index )
 {
     QString text = uiVarEdit.comboBoxTypeJson->currentText();
-    m_currentStrType = std::find_if( g_mapStrToKind.cbegin(), g_mapStrToKind.cend(), [&text]( const SValueType& t ) -> bool
-    {
-        return text == t.name;
-    } )->prjType;
+    m_currentStrType = CJsonConfig::StringTypeToProjectType( text );
     QString value = uiVarEdit.lineEditValue->text();
     checkValue( value );
 }

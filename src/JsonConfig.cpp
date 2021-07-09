@@ -16,7 +16,7 @@ const std::vector<std::string> CJsonConfig::s_vMainConfObjects
     "Connections"
 };
 
-extern const std::vector<SValueType> g_mapStrToKind
+const std::vector<SValueType> g_mapStrToKind
 {
     {"BOOLEAN",     Json::ValueType::booleanValue, ETypeValue::boolean_value},
     {"INTEGER",     Json::ValueType::intValue,     ETypeValue::integer_number},
@@ -27,6 +27,21 @@ extern const std::vector<SValueType> g_mapStrToKind
     {"ARRAY",       Json::ValueType::arrayValue,   ETypeValue::arraj_value},
     {"OBJECT",      Json::ValueType::objectValue,  ETypeValue::object_value},
     {"LINK",        Json::ValueType::stringValue,  ETypeValue::link}
+};
+
+const std::vector<SValueView> g_loggerTemplate
+{
+    { "name",                "TestExecutor log", "STRING"  },
+    { "host",                "localhost",        "STRING"  },
+    { "port",                "2100",             "INTEGER" },
+    { "retry",               "5",                "INTEGER" },
+    { "max_message_size",    "2048",             "INTEGER" },
+    { "module_tag_size",     "4",                "INTEGER" },
+    { "severity",            "DEBUG",            "STRING"  },
+    { "bg-color",            "lightGray",        "STRING"  },
+    { "text-color",          "darkBlue",         "STRING"  },
+    { "font-name",           "Courier New",      "STRING"  },
+    { "font-weight",         "10",               "INTEGER" }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -206,5 +221,15 @@ Json::ValueType CJsonConfig::StringTypeToJsonType( const QString& str )
         return str == t.name;
     } );
     return (it != g_mapStrToKind.cend()) ? it->jType : Json::ValueType::nullValue;
+}
+
+QList<QString> CJsonConfig::GetValueTypesList()
+{
+    QList<QString> result;
+    for (const auto& t : g_mapStrToKind)
+    {
+        result.append( t.name );
+    }
+    return result;
 }
 

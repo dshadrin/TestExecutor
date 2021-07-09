@@ -5,6 +5,7 @@
 #include "Common.h"
 #include <json/json.h>
 #include <boost/optional.hpp>
+#include <QList>
 
 #define KEY_GEOMETRY "Geometry"
 #define KEY_PROPS_ARRAY_NAME "Properties"
@@ -42,14 +43,15 @@ public:
     template<typename _Type>
     OValueView Get(const QString& path, int index);
 
+    static ETypeValue StringTypeToProjectType( const QString& str );
+    static Json::ValueType StringTypeToJsonType( const QString& str );
+    static QList<QString> GetValueTypesList();
+
 private:
     Json::Value& FindObject( const QString path );
     OJsonValue GetValue( const QString path );
     // recursive find by list
     OJsonValue FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end );
-
-    static ETypeValue StringTypeToProjectType( const QString& str );
-    static Json::ValueType StringTypeToJsonType( const QString& str );
 
 private:
     std::string m_jsonConfigPath;
