@@ -74,10 +74,6 @@ TestExecutor::TestExecutor(QWidget *parent) :
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     QObject::connect( ui.actionOptions, SIGNAL( triggered() ), this, SLOT( OptionsDialog() ) );
 
-    setWindowTitle( tr( "MTF test executor" ) );
-    setWindowIcon( QIcon( ":/TestExecutor/common/editor.png" ) );
-    setUnifiedTitleAndToolBarOnMac( true );
-
     // get tests list
 //     m_config->SetWorkDirectory();
 #ifdef WIN32

@@ -58,6 +58,7 @@ CJsonConfigDialog::CJsonConfigDialog(QWidget* parent) :
     QObject::connect( uiConf.addParamButton, SIGNAL( clicked() ), this, SLOT( addNewProperty() ) );
     QObject::connect( uiConf.delParamButton, SIGNAL( clicked() ), this, SLOT( delProperty() ) );
     QObject::connect( uiConf.editParamButton, SIGNAL( clicked() ), this, SLOT( editProperty() ) );
+    QObject::connect( uiConf.treeObjectsWidget, SIGNAL( clicked() ), this, SLOT( editProperty() ) );
 }
 
 CJsonConfigDialog::~CJsonConfigDialog()
@@ -75,41 +76,86 @@ void CJsonConfigDialog::InitDialog(CJsonConfig* pConfig)
         auto jRoot = m_pConfig->GetSettings();
         uiConf.treeObjectsWidget->setColumnCount( 1 );
         QList<QTreeWidgetItem*> items;
+        QTreeWidgetItem* currentItem = nullptr;
         auto count = jRoot.size();
         for (auto it = jRoot.begin(); it != jRoot.end(); ++it)
         {
-            if (it->value().is_object())
-            {
-                const char* key = it->key_c_str();
-                items.append( new QTreeWidgetItem( (QTreeWidget*)nullptr, QStringList( key ) ) );
-            }
+//             if (it->value().is_object())
+//             {
+//                 const char* key = it->key_c_str();
+//                 QTreeWidgetItem* item = new QTreeWidgetItem( (QTreeWidget*)nullptr, QStringList( key ) );
+//                 if (currentItem == nullptr) currentItem = item;
+//                 items.append( item );
+//             }
         }
         uiConf.treeObjectsWidget->insertTopLevelItems( 0, items );
-
-//         boost::optional<boost::property_tree::ptree&> pt = m_pt.get_child_optional( KEY_ENV_PATH );
-//         if (pt.has_value() && !pt.get().empty())
-//         {
-//             LOG_INFO << "Get environment:";
-//             QTableWidget* table = dlg->GetEnvTableWidget();
-//             for (const auto& it : pt.get())
-//             {
-//                 const int row = table->rowCount();
-//                 table->setRowCount( row + 1 );
-//                 const std::string eName = it.first;
-//                 const std::string eValue = it.second.get_value<std::string>( "" );
-//                 QTableWidgetItem* nameItem = new QTableWidgetItem( QString::fromStdString( eName ) );
-//                 QTableWidgetItem* valueItem = new QTableWidgetItem( QString::fromStdString( eValue ) );
-//                 table->setItem( row, 0, nameItem );
-//                 table->setItem( row, 1, valueItem );
-//                 LOG_INFO << "    " << eName << "=" << eValue;
-//             }
-//             table->sortItems( 0 );
-//         }
-//         else
-//         {
-//             LOG_INFO << "Get environment empty list";
-//         }
+        uiConf.treeObjectsWidget->setCurrentItem( currentItem );
+        FillTableProperties();
     }
+}
+
+
+void CJsonConfigDialog::FillTableProperties()
+{
+    QString path = GetCurrentTreePath();
+    std::vector<SValueView> props = m_pConfig->GetProperties( path );
+    if (!props.empty())
+    {
+        for (auto& it : props)
+        {
+            const int row = uiConf.tablePropertiesWidget->rowCount();
+            uiConf.tablePropertiesWidget->setRowCount( row + 1 );
+            uiConf.tablePropertiesWidget->setItem( row, 0, new QTableWidgetItem( it.name ) );
+            uiConf.tablePropertiesWidget->setItem( row, 1, new QTableWidgetItem( it.value ) );
+            uiConf.tablePropertiesWidget->setItem( row, 2, new QTableWidgetItem( it.type ) );
+        }
+        uiConf.tablePropertiesWidget->sortItems( 0 );
+    }
+}
+
+
+int CJsonConfigDialog::FindTableProprtyRow( const QString& name )
+{
+    int row = -1;
+    int count = uiConf.tablePropertiesWidget->rowCount();
+    for (int i = 0; i < count; ++i)
+    {
+        if (name.compare( uiConf.tablePropertiesWidget->item( i, 0 )->text(), Qt::CaseSensitivity::CaseInsensitive ) == 0)
+        {
+            row = i;
+            break;
+        }
+    }
+    return row;
+}
+
+
+void CJsonConfigDialog::SavePropertyValue( int row, const QString& name, const QString& value, const QString& type )
+{
+    QTableWidgetItem* nameItem = uiConf.tablePropertiesWidget->item( row, 0 );
+    QTableWidgetItem* valueItem = uiConf.tablePropertiesWidget->item( row, 1 );
+    QTableWidgetItem* typeItem = uiConf.tablePropertiesWidget->item( row, 2 );
+    nameItem->setText( name );
+    valueItem->setText( value );
+    typeItem->setText( type );
+    uiConf.tablePropertiesWidget->sortItems( 0 );
+}
+
+
+QString CJsonConfigDialog::GetCurrentTreePath()
+{
+    QString result;
+    QTreeWidgetItem* currentItem = uiConf.treeObjectsWidget->currentItem();
+    if (currentItem != nullptr)
+    {
+        result = currentItem->text( 0 );
+        while (currentItem->parent() != nullptr)
+        {
+            currentItem = currentItem->parent();
+            result = currentItem->text( 0 ) + "." + result;
+        }
+    }
+    return result;
 }
 
 void CJsonConfigDialog::addNewProperty()
@@ -117,17 +163,50 @@ void CJsonConfigDialog::addNewProperty()
     QScopedPointer<CVarEditor> dlg( new CVarEditor( tr( "Create new property" ), Q_NULLPTR ) );
     if (dlg)
     {
-        if ( dlg->exec() == QDialog::Accepted )
+        bool isRun = true;
+        while ( isRun && dlg->exec() == QDialog::Accepted )
         {
             QString name = dlg->uiVarEdit.lineEditName->text();
             QString value = dlg->uiVarEdit.lineEditValue->text();
-            int row = uiConf.tablePropertiesWidget->rowCount();
-            uiConf.tablePropertiesWidget->setRowCount( row + 1 );
-            QTableWidgetItem* newItem = new QTableWidgetItem( name );
-            uiConf.tablePropertiesWidget->setItem( row, 0, newItem );
-            newItem = new QTableWidgetItem( value );
-            uiConf.tablePropertiesWidget->setItem( row, 1, newItem );
-            uiConf.tablePropertiesWidget->sortItems( 0 );
+            QString type = dlg->uiVarEdit.comboBoxTypeJson->currentText();
+            int row = FindTableProprtyRow( name );
+            if (row < 0)
+            {
+                row = uiConf.tablePropertiesWidget->rowCount();
+                uiConf.tablePropertiesWidget->setRowCount( row + 1 );
+                QTableWidgetItem* newItem = new QTableWidgetItem( name );
+                uiConf.tablePropertiesWidget->setItem( row, 0, newItem );
+                newItem = new QTableWidgetItem( value );
+                uiConf.tablePropertiesWidget->setItem( row, 1, newItem );
+                newItem = new QTableWidgetItem( type );
+                uiConf.tablePropertiesWidget->setItem( row, 2, newItem );
+                uiConf.tablePropertiesWidget->sortItems( 0 );
+                isRun = false;
+            }
+            else
+            {
+                QMessageBox msgBox;
+                msgBox.setText( "Property with name " + name + " exists already");
+                msgBox.setInformativeText( "Do you want to save your changes?" );
+                msgBox.setStandardButtons( QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+                msgBox.setDefaultButton( QMessageBox::Save );
+                int ret = msgBox.exec();
+                switch (ret)
+                {
+                case QMessageBox::Save:
+                    SavePropertyValue( row, name, value, type );
+                    isRun = false;
+                    break;
+                case QMessageBox::Discard:
+                    // Don't Save, return to edit
+                    break;
+                case QMessageBox::Cancel:
+                default:
+                    // Cancel was clicked
+                    isRun = false;
+                    break;
+                }
+            }
         }
     }
 }
@@ -149,20 +228,27 @@ void CJsonConfigDialog::editProperty()
     if (row != -1)
     {
         QTableWidgetItem* nameItem = uiConf.tablePropertiesWidget->item( row, 0 );
-        QString name = nameItem->text();
         QTableWidgetItem* valueItem = uiConf.tablePropertiesWidget->item( row, 1 );
-        QString value = valueItem->text();
+        QTableWidgetItem* typeItem = uiConf.tablePropertiesWidget->item( row, 2 );
 
         QScopedPointer<CVarEditor> dlg( new CVarEditor( tr( "Edit property" ), Q_NULLPTR ) );
         if (dlg)
         {
+            // set dialog data
             dlg->uiVarEdit.lineEditName->setText( nameItem->text() );
             dlg->uiVarEdit.lineEditValue->setText( valueItem->text() );
+            dlg->SetCurrentType( typeItem->text() );
             if (dlg->exec() == QDialog::Accepted)
             {
-                nameItem->setText( dlg->uiVarEdit.lineEditName->text() );
-                valueItem->setText( dlg->uiVarEdit.lineEditValue->text() );
-                uiConf.tablePropertiesWidget->sortItems( 0 );
+                // save dialog data
+                QString name = dlg->uiVarEdit.lineEditName->text();
+                int newRow = FindTableProprtyRow( name );
+                if (newRow != -1 && newRow != row)
+                {
+                    // we are edit other property, because save other
+                    row = newRow;
+                }
+                SavePropertyValue( row, name, dlg->uiVarEdit.lineEditValue->text(), dlg->uiVarEdit.comboBoxTypeJson->currentText() );
             }
         }
     }

@@ -4,7 +4,6 @@
 #include <QMessageBox>
 
 // configuration file path
-std::string g_configName;
 std::string g_jsonConfigName;
 
 int main(int argc, char *argv[])
@@ -13,8 +12,6 @@ int main(int argc, char *argv[])
 
     try
     {
-        fs::path confPath( fs::current_path() / fs::path(argv[0]).filename().replace_extension( ".json" ) );
-        g_configName = confPath.string();
         fs::path jsonConfPath( fs::current_path() / fs::path( argv[0] ).filename().replace_extension( ".conf" ) );
         g_jsonConfigName = jsonConfPath.string();
 

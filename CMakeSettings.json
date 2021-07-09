@@ -39,7 +39,7 @@
       "cmakeExecutable": "d:/Qt/Tools/CMake_64/bin/cmake.exe",
       "buildRoot": "${projectDir}\\.build-release",
       "installRoot": "${projectDir}\\dist",
-      "cmakeCommandArgs": "-Wno-dev-DMSVC=ON",
+      "cmakeCommandArgs": "-Wno-dev -DMSVC=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64" ],

@@ -1,16 +1,47 @@
 #include "VarEditDialog.h"
-#include "Common.h"
+#include "JsonConfig.h"
 
 //////////////////////////////////////////////////////////////////////////
-CVarEditor::CVarEditor( const QString& name, QWidget* parent)
+extern const std::vector<SValueType> g_mapStrToKind;
+
+//////////////////////////////////////////////////////////////////////////
+CVarEditor::CVarEditor( const QString& name, QWidget* parent) :
+    m_currentStrType(ETypeValue::string_value)
 {
     uiVarEdit.setupUi( this );
     setWindowTitle( name );
     setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
     setAttribute( Qt::WA_CustomWhatsThis );
 
+    int pos = 0;
+    for (auto& p : g_mapStrToKind)
+    {
+        uiVarEdit.comboBoxTypeJson->addItem( p.name );
+        if (p.name == "STRING")
+        {
+            uiVarEdit.comboBoxTypeJson->setCurrentIndex( pos );
+        }
+        ++pos;
+    }
+
     QObject::connect( uiVarEdit.pushButtonFiles, &QPushButton::clicked, this, &CVarEditor::findFile );
     QObject::connect( uiVarEdit.pushButtonFolders, &QPushButton::clicked, this, &CVarEditor::findFolder );
+    QObject::connect( uiVarEdit.comboBoxTypeJson, &QComboBox::currentIndexChanged, this, &CVarEditor::changedType );
+    QObject::connect( uiVarEdit.lineEditValue, &QLineEdit::textChanged, this, &CVarEditor::checkValue );
+}
+
+
+void CVarEditor::SetCurrentType( const QString& str )
+{
+    int count = uiVarEdit.comboBoxTypeJson->count();
+    for (int i = 0; i < count; ++i)
+    {
+        if (str == uiVarEdit.comboBoxTypeJson->itemText( i ))
+        {
+            uiVarEdit.comboBoxTypeJson->setCurrentIndex( i );
+            break;
+        }
+    }
 }
 
 void CVarEditor::findFile()
@@ -68,6 +99,32 @@ void CVarEditor::findFolder()
             }
             le->setText( oldText );
         }
+    }
+}
+
+void CVarEditor::changedType( int index )
+{
+    QString text = uiVarEdit.comboBoxTypeJson->currentText();
+    m_currentStrType = std::find_if( g_mapStrToKind.cbegin(), g_mapStrToKind.cend(), [&text]( const SValueType& t ) -> bool
+    {
+        return text == t.name;
+    } )->prjType;
+    QString value = uiVarEdit.lineEditValue->text();
+    checkValue( value );
+}
+
+void CVarEditor::checkValue( const QString& text )
+{
+    bool check = util::CheckStringValue( text, m_currentStrType );
+    if (check)
+    {
+        uiVarEdit.lineEditValue->setStyleSheet( QString::fromUtf8( "background-color: rgb(85, 255, 127);" ) );
+        uiVarEdit.buttonBox->button( QDialogButtonBox::Ok )->setEnabled( true );
+    }
+    else
+    {
+        uiVarEdit.lineEditValue->setStyleSheet( QString::fromUtf8( "background-color: rgb( 255, 161, 158 );" ) );
+        uiVarEdit.buttonBox->button( QDialogButtonBox::Ok )->setEnabled( false );
     }
 }
 

@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="common">
+    <file>tools.png</file>
     <file>editor.png</file>
     <file>icons8-plus-32.png</file>
     <file>icons8-minus-32.png</file>

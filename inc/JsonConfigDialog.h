@@ -17,6 +17,12 @@ public:
     ~CJsonConfigDialog();
 
     void InitDialog(CJsonConfig* pConfig);
+    void FillTableProperties();
+    int FindTableProprtyRow( const QString& name ); //return -1 if not found
+
+private:
+    void SavePropertyValue( int row, const QString& name, const QString& value, const QString& type );
+    QString GetCurrentTreePath();
 
 private Q_SLOTS:
     void addNewProperty();

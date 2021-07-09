@@ -36,7 +36,7 @@ elseif(UNIX)
 endif()
 set(Boost_USE_MULTITHREADED ON)
 
-list(APPEND BOOST_LIB_LIST system date_time json)
+list(APPEND BOOST_LIB_LIST system date_time)
 if(NOT HAVE_STD_FILESYSTEM)
   message(STATUS "Use boost::filesystem")
   list(APPEND BOOST_LIB_LIST filesystem)
@@ -99,8 +99,6 @@ set(SOURCES
   src/StdInc.cpp
   src/main.cpp
   src/${PROJECT_NAME}.cpp
-  src/Config.cpp
-  src/ConfigDialog.cpp
   src/JsonConfig.cpp
   src/JsonConfigDialog.cpp
   src/Console.cpp
@@ -115,8 +113,6 @@ set(HEADERS
   ${SSH_INC}
   ${APP_BUILD_PATH}/inc/StdInc.h
   inc/${PROJECT_NAME}.h
-  inc/Config.h
-  inc/ConfigDialog.h
   inc/JsonConfig.h
   inc/JsonConfigDialog.h
   inc/Console.h
@@ -125,6 +121,8 @@ set(HEADERS
   inc/VarEditDialog.h
   inc/Monitor.h
   inc/Logger.h
+  inc/json/json.h
+  inc/json/json-forwards.h
 )
 
 if(MSVC)
@@ -143,7 +141,6 @@ set(RESOURCES
 
 set(FORMS
   ui/${PROJECT_NAME}.ui
-  ui/SessionConfig.ui
   ui/JsonConfig.ui
   ui/VarEdit.ui
 )

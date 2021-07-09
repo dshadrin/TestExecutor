@@ -1,10 +1,6 @@
 #include "JsonConfig.h"
 #include "JsonConfigDialog.h"
 #include <QMessageBox>
-#include <fstream>
-
-//////////////////////////////////////////////////////////////////////////
-namespace bj = boost::json;
 
 //////////////////////////////////////////////////////////////////////////
 extern std::string g_jsonConfigName;
@@ -20,13 +16,25 @@ const std::vector<std::string> CJsonConfig::s_vMainConfObjects
     "Connections"
 };
 
+extern const std::vector<SValueType> g_mapStrToKind
+{
+    {"BOOLEAN",     Json::ValueType::booleanValue, ETypeValue::boolean_value},
+    {"INTEGER",     Json::ValueType::intValue,     ETypeValue::integer_number},
+    {"UNSIGNED",    Json::ValueType::uintValue,    ETypeValue::unsigned_number},
+    {"DOUBLE",      Json::ValueType::realValue,    ETypeValue::float_number},
+    {"STRING",      Json::ValueType::stringValue,  ETypeValue::string_value},
+    {"HEXSTRING",   Json::ValueType::stringValue,  ETypeValue::hex_number},
+    {"ARRAY",       Json::ValueType::arrayValue,   ETypeValue::arraj_value},
+    {"OBJECT",      Json::ValueType::objectValue,  ETypeValue::object_value},
+    {"LINK",        Json::ValueType::stringValue,  ETypeValue::link}
+};
+
 //////////////////////////////////////////////////////////////////////////
 CJsonConfig::CJsonConfig( QObject* parent ) :
     QObject(parent),
-    m_jsonConfigPath( g_jsonConfigName ),
-    m_jMain( bj::object_kind )
+    m_jsonConfigPath( g_jsonConfigName )
 {
-    if (fs::exists(m_jsonConfigPath))
+    if (fs::exists( m_jsonConfigPath ))
     {
         size_t jFileSize = fs::file_size( m_jsonConfigPath );
         if (jFileSize > 0)
@@ -44,40 +52,30 @@ CJsonConfig::CJsonConfig( QObject* parent ) :
                 }
                 ifs.close();
 
-                // parse json
-                bj::parse_options opt;                              // all extensions default to off
-                opt.allow_comments = true;                          // permit C and C++ style comments to appear in whitespace
-                opt.allow_trailing_commas = true;                   // allow an additional trailing comma in object and array element lists
-                opt.allow_invalid_utf8 = true;                      // skip utf-8 validation of keys and strings
+                Json::Reader reader;
 
-                bj::stream_parser p( {}, opt );
-                bj::error_code ec;
-                p.write( jStr.c_str(), jStr.length(), ec );
-                if (!ec)
+                if (!reader.parse( jStr, m_jMain ))
                 {
-                    p.finish( ec );
-                    if (!ec)
-                    {
-                        m_jMain = p.release();
-                    }
-                }
-                if (ec)
-                {
-                    QMessageBox::critical( Q_NULLPTR, QString( "Parsing failed" ), QString::fromStdString( ec.message() ) );
+                    QMessageBox::critical( Q_NULLPTR, QString("ERROR!"), QString("Config parsing failed"));
                 }
             }
         }
     }
 
-    if (GetSettings().empty())
+    // check several objects are defined
+    Json::Value emptyObj;
+    Json::Reader reader;
+    reader.parse( "{}", emptyObj ); // prepare empty object
+
+    for (const std::string& name : s_vMainConfObjects)
     {
-        for (const std::string& name : s_vMainConfObjects)
+        if (!GetSettings().isMember(name))
         {
-            GetSettings()[name] = bj::object();
+            GetSettings()[name] = emptyObj;
         }
-        
-        WriteJsonConfig();
     }
+        
+    WriteJsonConfig();
 }
 
 CJsonConfig::~CJsonConfig()
@@ -90,7 +88,7 @@ void CJsonConfig::WriteJsonConfig()
     std::ofstream ofs( m_jsonConfigPath );
     if (ofs.good())
     {
-        PrettyPrint( ofs, m_jMain );
+        Json::StyledStreamWriter( "  " ).write( ofs, GetSettings() );
         ofs.close();
     }
 }
@@ -103,142 +101,110 @@ void CJsonConfig::SaveGeometry( const std::string& value )
 
 std::string CJsonConfig::GetGeometry()
 {
-    if (GetSettings()[KEY_GEOMETRY].is_null())
+    if (GetSettings()[KEY_GEOMETRY].isNull())
     {
         return "";
     }
-    return GetSettings()[KEY_GEOMETRY].as_string().c_str();
+    return GetSettings()[KEY_GEOMETRY].asCString();
 }
 
-void CJsonConfig::StoreOptionValues( CJsonConfigDialog* dlg )
+std::vector<SValueView> CJsonConfig::GetProperties( const QString path )
 {
-//     std::string testAppPath = dlg->GetAppName();
-//     LOG_INFO << "Store test application path" << (testAppPath.empty() ? " empty" : ": " + testAppPath);
-//     m_pt.put( KEY_TEST_APP_PATH, testAppPath );
-// 
-//     std::string runBeforeAppPath = dlg->GetRunBeforeName();
-//     LOG_INFO << "Store run before tests application path" << (runBeforeAppPath.empty() ? " empty" : ": " + runBeforeAppPath);
-//     m_pt.put( KEY_RUN_BEFORE_PATH, runBeforeAppPath );
-// 
-//     QList<std::pair<QString, QString>> lEnv = dlg->GetEnvironmentValues();
-//     boost::property_tree::ptree pt;
-//     if (!lEnv.empty())
-//     {
-//         LOG_INFO << "Store environment:";
-//         for (auto& it : lEnv)
-//         {
-//             const std::string eName = it.first.toStdString();
-//             const std::string eValue = it.second.toStdString();
-//             pt.put<std::string>( eName, eValue );
-//             LOG_INFO << "    " << eName << "=" << eValue;
-//         }
-//     }
-//     else
-//     {
-//         LOG_INFO << "Store environment empty list";
-//     }
-//     m_pt.put_child( KEY_ENV_PATH, pt );
-//     WriteJsonConfig();
-}
-
-void CJsonConfig::SetWorkDirectory()
-{
-//     auto appPath = ReadTestAppPath();
-//     if (!appPath.empty() && fs::exists(appPath))
-//     {
-//         fs::path p = fs::path(appPath).parent_path();
-//         fs::current_path( p );
-//         LOG_INFO << "Set current directory: " << p;
-//     }
-//     else
-//     {
-//         LOG_WARN << "Test application path is empty or not existed: " << appPath;
-//     }
-}
-
-void CJsonConfig::PrettyPrint( std::ostream& os, boost::json::value const& jv, size_t indentSize, std::string* indent )
-{
-    std::string indent_;
-    if (!indent) indent = &indent_;
-
-    switch (jv.kind())
+    std::vector<SValueView> propsSet;
+    OJsonValue v = GetValue( path );
+    if (v && (v->isArray() || v->isObject()))
     {
-    case bj::kind::object:
-    {
-        os << "{\n";
-        indent->append( indentSize, ' ' );
-        auto const& obj = jv.get_object();
-        if (!obj.empty())
+        const int count = v->size();
+        for (int i = 0; i < count; ++i)
         {
-            auto it = obj.begin();
-            for (;;)
+            SValueView vv;
+            Json::Value& item = v.get()[i];
+            vv.name = (item.isMember( KEY_PROP_NAME )) ? item[KEY_PROP_NAME].asCString() : "";
+            vv.type = (item.isMember( KEY_PROP_TYPE )) ? item[KEY_PROP_TYPE].asCString() : "STRING";
+            vv.value = (item.isMember( KEY_PROP_VALUE )) ? item[KEY_PROP_VALUE].asCString() : "";
+            if (item.isMember( KEY_PROP_VALUE ))
             {
-                os << *indent << bj::serialize( it->key() ) << " : ";
-                PrettyPrint( os, it->value(), indentSize, indent );
-                if (++it == obj.end())
+                ETypeValue t = StringTypeToProjectType( vv.type );
+                Json::Value value = item[KEY_PROP_VALUE];
+                switch (t)
+                {
+                case ETypeValue::arraj_value:
+                case ETypeValue::object_value:
+                    vv.value = Json::FastWriter().write( item ).c_str();
                     break;
-                os << ",\n";
+                case ETypeValue::null:
+                case ETypeValue::boolean_value:
+                case ETypeValue::integer_number:
+                case ETypeValue::unsigned_number:
+                case ETypeValue::float_number:
+                case ETypeValue::string_value:
+                case ETypeValue::hex_number:
+                case ETypeValue::link:
+                default:
+                    vv.value = value.asCString();
+                    break;
+                }
             }
-            os << "\n";
-        }
-        indent->resize( indent->size() - indentSize );
-        os << *indent << "}";
-        break;
-    }
-
-    case bj::kind::array:
-    {
-        os << "[\n";
-        indent->append( indentSize, ' ' );
-        auto const& arr = jv.get_array();
-        if (!arr.empty())
-        {
-            auto it = arr.begin();
-            for (;;)
+            else
             {
-                os << *indent;
-                PrettyPrint( os, *it, indentSize, indent );
-                if (++it == arr.end())
-                    break;
-                os << ",\n";
+                vv.value = "";
+            }
+            propsSet.push_back( vv );
+        }
+    }
+    return propsSet;
+}
+
+Json::Value& CJsonConfig::FindObject( const QString path )
+{
+    auto& obj = GetSettings();
+    for (auto it : QStringTokenizer { path, u'.' })
+    {
+        std::string tok = it.toString().toStdString();
+        if (!tok.empty())
+        {
+            auto& item = obj[tok];
+            if (item.isObject())
+            {
+                obj = item;
             }
         }
-        os << "\n";
-        indent->resize( indent->size() - indentSize );
-        os << *indent << "]";
-        break;
     }
-
-    case bj::kind::string:
-    {
-        os << bj::serialize( jv.get_string() );
-        break;
-    }
-
-    case bj::kind::uint64:
-        os << jv.get_uint64();
-        break;
-
-    case bj::kind::int64:
-        os << jv.get_int64();
-        break;
-
-    case bj::kind::double_:
-        os << jv.get_double();
-        break;
-
-    case bj::kind::bool_:
-        if (jv.get_bool())
-            os << "true";
-        else
-            os << "false";
-        break;
-
-    case bj::kind::null:
-        os << "null";
-        break;
-    }
-
-    if (indent->empty())
-        os << "\n";
+    return obj;
 }
+
+OJsonValue CJsonConfig::GetValue( const QString path )
+{
+    QList<QStringView> parsedPath = util::SplitString( path, u'.' );
+    return FindValue( GetSettings(), parsedPath.cbegin(), parsedPath.cend() );
+}
+
+OJsonValue CJsonConfig::FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end )
+{
+    if (prev && it != end)
+    {
+        const std::string name = it->toString().toStdString();
+        OJsonValue next = prev->isMember( name ) ? prev.get()[name] : OJsonValue {};
+        return FindValue( next, ++it, end );
+    }
+    return prev;
+}
+
+ETypeValue CJsonConfig::StringTypeToProjectType( const QString& str )
+{
+    std::vector<SValueType>::const_iterator it = std::find_if( g_mapStrToKind.cbegin(), g_mapStrToKind.cend(), [&str]( const SValueType& t ) -> bool
+    {
+        return str == t.name;
+    } );
+    return (it != g_mapStrToKind.cend()) ? it->prjType : ETypeValue::null;
+}
+
+Json::ValueType CJsonConfig::StringTypeToJsonType( const QString& str )
+{
+    std::vector<SValueType>::const_iterator it = std::find_if( g_mapStrToKind.cbegin(), g_mapStrToKind.cend(), [&str]( const SValueType& t ) -> bool
+    {
+        return str == t.name;
+    } );
+    return (it != g_mapStrToKind.cend()) ? it->jType : Json::ValueType::nullValue;
+}
+
