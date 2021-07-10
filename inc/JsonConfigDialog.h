@@ -5,7 +5,7 @@
 #include "ui_JsonConfig.h"
 #include "JsonConfig.h"
 #include <QDialog>
-#include <QSettings>
+#include <QStringList>
 
 //////////////////////////////////////////////////////////////////////////
 class CJsonConfigDialog : public QDialog
@@ -23,13 +23,20 @@ public:
 private:
     void SavePropertyValue( int row, const QString& name, const QString& value, const QString& type );
     QString GetCurrentTreePath();
+    void FillTreeNode( const Json::Value& jValue, QTreeWidgetItem* parent );
 
 private Q_SLOTS:
     void addNewProperty();
     void delProperty();
     void editProperty();
 
+
+    void itemChanged( QTreeWidgetItem* current, QTreeWidgetItem* previous );
+
+
 private:
     Ui::JsonConfigDialog uiConf;
     CJsonConfig* m_pConfig;
+    QTreeWidgetItem* m_currentTreeItem;
+    bool m_boolTableDirty;
 };

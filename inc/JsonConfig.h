@@ -45,6 +45,7 @@ public:
 
     static ETypeValue StringTypeToProjectType( const QString& str );
     static Json::ValueType StringTypeToJsonType( const QString& str );
+    static QString JsonTypeToStringType( Json::ValueType kind );
     static QList<QString> GetValueTypesList();
 
 private:
@@ -58,5 +59,6 @@ private:
     std::string m_localeString;
     Json::Value m_jMain;
     static const std::vector<std::string> s_vMainConfObjects;
+    static const std::vector<std::pair<std::string, ETypeValue>> s_vCurrentSessionConfObjects;
     DECLARE_MODULE_TAG;
 };

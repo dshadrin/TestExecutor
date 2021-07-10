@@ -9,56 +9,73 @@
 //////////////////////////////////////////////////////////////////////////
 CJsonConfigDialog::CJsonConfigDialog(QWidget* parent) :
     QDialog( parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint ),
-    m_pConfig(nullptr)
+    m_pConfig(nullptr),
+    m_currentTreeItem(nullptr),
+    m_boolTableDirty(false)
 {
     uiConf.setupUi( this );
     setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint );
     setAttribute( Qt::WA_CustomWhatsThis );
 
-    QFont headerFont( "Times", 10, QFont::Bold );
+    QFont headerFont( "Tahoma", 9, QFont::Bold );
 
-    // environment variables table
+    // tree of props sets
     {
-//         QTableWidgetItem* nameHeaderItem = new QTableWidgetItem( tr( "Name" ) );
-//         //nameHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
-//         nameHeaderItem->setTextAlignment( Qt::AlignLeft );
-//         nameHeaderItem->setFont( headerFont );
-//         uiConf.envTableWidget->setHorizontalHeaderItem( 0, nameHeaderItem );
+        uiConf.treeObjectsWidget->setColumnCount( 2 );
 
-//         QTableWidgetItem* valHeaderItem = new QTableWidgetItem( tr( "Value" ) );
-//         //valHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
-//         valHeaderItem->setTextAlignment( Qt::AlignLeft );
-//         valHeaderItem->setFont( headerFont );
-//         uiConf.envTableWidget->setHorizontalHeaderItem( 1, valHeaderItem );
+        QTreeWidgetItem* nameHeaderItem = new QTreeWidgetItem( (QTreeWidget*)nullptr, QStringList { tr("Name"), tr("Count")});
+        nameHeaderItem->setIcon( 0, QIcon( ":/common/icons8-name-tag-24.png" ) );
+        nameHeaderItem->setIcon( 1, QIcon( ":/common/icons8-counter-50.png" ) );
+        nameHeaderItem->setTextAlignment( 0, Qt::AlignLeft );
+        nameHeaderItem->setTextAlignment( 1, Qt::AlignLeft );
+        nameHeaderItem->setFont( 0, headerFont );
+        nameHeaderItem->setFont( 1, headerFont );
+        uiConf.treeObjectsWidget->setHeaderItem( nameHeaderItem );
+        uiConf.treeObjectsWidget->header()->resizeSection( 1, 40 );
+        uiConf.treeObjectsWidget->header()->setStretchLastSection( false );
+        uiConf.treeObjectsWidget->header()->setSectionResizeMode( 0, QHeaderView::Stretch );
+        uiConf.treeObjectsWidget->header()->setStyleSheet( QString( "QHeaderView::section {background-color: rgb(222, 222, 222);}" ) );
     }
 
     // object properties table
     {
+        uiConf.tablePropertiesWidget->setColumnCount( 3 );
+
         QTableWidgetItem* nameHeaderItem = new QTableWidgetItem( tr( "Name" ) );
-        //nameHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
+        nameHeaderItem->setIcon( QIcon( ":/common/icons8-name-tag-24.png" ) );
         nameHeaderItem->setTextAlignment( Qt::AlignLeft );
         nameHeaderItem->setFont( headerFont );
         uiConf.tablePropertiesWidget->setHorizontalHeaderItem( 0, nameHeaderItem );
 
         QTableWidgetItem* valHeaderItem = new QTableWidgetItem( tr( "Value" ) );
-        //valHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
+        valHeaderItem->setIcon( QIcon( ":/common/icons8-important-property-24.png"));
         valHeaderItem->setTextAlignment( Qt::AlignLeft );
         valHeaderItem->setFont( headerFont );
         uiConf.tablePropertiesWidget->setHorizontalHeaderItem( 1, valHeaderItem );
 
         QTableWidgetItem* typeHeaderItem = new QTableWidgetItem( tr( "Type" ) );
-        //valHeaderItem->setIcon( QIcon( QPixmap( ":/Images/cubed.png" ) ) );
+        typeHeaderItem->setIcon( QIcon( ":/common/icons8-paste-as-text-24.png"));
         typeHeaderItem->setTextAlignment( Qt::AlignLeft );
         typeHeaderItem->setFont( headerFont );
         uiConf.tablePropertiesWidget->setHorizontalHeaderItem( 2, typeHeaderItem );
 
         uiConf.tablePropertiesWidget->setLineWidth( uiConf.tablePropertiesWidget->width() );
+        uiConf.tablePropertiesWidget->horizontalHeader()->setStretchLastSection( false );
+        uiConf.tablePropertiesWidget->horizontalHeader()->resizeSection( 2, 60 );
+        uiConf.tablePropertiesWidget->horizontalHeader()->resizeSection( 0, 250 );
+        uiConf.tablePropertiesWidget->horizontalHeader()->setSectionResizeMode( 1, QHeaderView::Stretch );
+        uiConf.tablePropertiesWidget->horizontalHeader()->setStyleSheet( QString( "QHeaderView::section {background-color: rgb(222, 222, 222);}" ) );
     }
 
+    // table edit buttons
     QObject::connect( uiConf.addParamButton, SIGNAL( clicked() ), this, SLOT( addNewProperty() ) );
     QObject::connect( uiConf.delParamButton, SIGNAL( clicked() ), this, SLOT( delProperty() ) );
     QObject::connect( uiConf.editParamButton, SIGNAL( clicked() ), this, SLOT( editProperty() ) );
-    QObject::connect( uiConf.treeObjectsWidget, SIGNAL( clicked() ), this, SLOT( editProperty() ) );
+
+    // tree edit buttons
+
+    // tree navigation signals
+    QObject::connect( uiConf.treeObjectsWidget, SIGNAL( currentItemChanged( QTreeWidgetItem*, QTreeWidgetItem* ) ), this, SLOT( itemChanged( QTreeWidgetItem*, QTreeWidgetItem* ) ) );
 }
 
 CJsonConfigDialog::~CJsonConfigDialog()
@@ -74,23 +91,53 @@ void CJsonConfigDialog::InitDialog(CJsonConfig* pConfig)
 
         // fill object tree
         auto jRoot = m_pConfig->GetSettings();
-        uiConf.treeObjectsWidget->setColumnCount( 1 );
-        QList<QTreeWidgetItem*> items;
-        QTreeWidgetItem* currentItem = nullptr;
-        auto count = jRoot.size();
-        for (auto it = jRoot.begin(); it != jRoot.end(); ++it)
-        {
-//             if (it->value().is_object())
-//             {
-//                 const char* key = it->key_c_str();
-//                 QTreeWidgetItem* item = new QTreeWidgetItem( (QTreeWidget*)nullptr, QStringList( key ) );
-//                 if (currentItem == nullptr) currentItem = item;
-//                 items.append( item );
-//             }
-        }
+
+        QTreeWidgetItem* currentItem = new QTreeWidgetItem( (QTreeWidget*)nullptr, QStringList( "Configuration"));
+        currentItem->setData( 0, Qt::UserRole, 0 );
+        FillTreeNode( jRoot, currentItem );
+        QList<QTreeWidgetItem*> items { currentItem };
+
         uiConf.treeObjectsWidget->insertTopLevelItems( 0, items );
         uiConf.treeObjectsWidget->setCurrentItem( currentItem );
+        uiConf.treeObjectsWidget->expandAll();
+
         FillTableProperties();
+    }
+}
+
+void CJsonConfigDialog::FillTreeNode( const Json::Value& jValue, QTreeWidgetItem* parent )
+{
+    QList<QTreeWidgetItem*> items;
+
+    auto handleItem = [&]( const Json::Value& jv, const QString& itemName ) -> void
+    {
+        if (jv.isObject() || jv.isArray())
+        {
+            const QString sType = CJsonConfig::JsonTypeToStringType( jv.type() );
+            QTreeWidgetItem* item = new QTreeWidgetItem( parent, QStringList { itemName, QString::number(jv.size())}, (int)CJsonConfig::StringTypeToProjectType(sType));
+            item->setData( 0, Qt::UserRole, &jv );
+            FillTreeNode( jv, item );
+            items.append( item );
+        }
+    };
+
+    if (jValue.isObject())
+    {
+        Json::Value::Members listNames = jValue.getMemberNames();
+        for (size_t i = 0; i < listNames.size(); ++i)
+        {
+            const Json::Value& jv = jValue[listNames[i]];
+            handleItem( jv, listNames[i].c_str() );
+        }
+    }
+    else if (jValue.isArray())
+    {
+        int count = jValue.size();
+        for (int i = 0; i < count; ++i)
+        {
+            const Json::Value& jv = jValue[i];
+            handleItem( jv, std::to_string( i ).c_str() );
+        }
     }
 }
 
@@ -98,18 +145,27 @@ void CJsonConfigDialog::InitDialog(CJsonConfig* pConfig)
 void CJsonConfigDialog::FillTableProperties()
 {
     QString path = GetCurrentTreePath();
-    std::vector<SValueView> props = m_pConfig->GetProperties( path );
-    if (!props.empty())
+    if (!path.isEmpty())
     {
-        for (auto& it : props)
+        std::vector<SValueView> props = m_pConfig->GetProperties( path );
+        if (!props.empty())
         {
-            const int row = uiConf.tablePropertiesWidget->rowCount();
-            uiConf.tablePropertiesWidget->setRowCount( row + 1 );
-            uiConf.tablePropertiesWidget->setItem( row, 0, new QTableWidgetItem( it.name ) );
-            uiConf.tablePropertiesWidget->setItem( row, 1, new QTableWidgetItem( it.value ) );
-            uiConf.tablePropertiesWidget->setItem( row, 2, new QTableWidgetItem( it.type ) );
+            for (auto& it : props)
+            {
+                const int row = uiConf.tablePropertiesWidget->rowCount();
+                uiConf.tablePropertiesWidget->setRowCount( row + 1 );
+                uiConf.tablePropertiesWidget->setItem( row, 0, new QTableWidgetItem( it.name ) );
+                uiConf.tablePropertiesWidget->setItem( row, 1, new QTableWidgetItem( it.value ) );
+                uiConf.tablePropertiesWidget->setItem( row, 2, new QTableWidgetItem( it.type ) );
+            }
+            uiConf.tablePropertiesWidget->sortItems( 0 );
         }
-        uiConf.tablePropertiesWidget->sortItems( 0 );
+        else
+        {
+            uiConf.editParamButton->setEnabled( false );
+            uiConf.delParamButton->setEnabled( false );
+
+        }
     }
 }
 
@@ -251,6 +307,16 @@ void CJsonConfigDialog::editProperty()
                 SavePropertyValue( row, name, dlg->uiVarEdit.lineEditValue->text(), dlg->uiVarEdit.comboBoxTypeJson->currentText() );
             }
         }
+    }
+}
+
+void CJsonConfigDialog::itemChanged( QTreeWidgetItem* current, QTreeWidgetItem* previous )
+{
+    assert( m_currentTreeItem == previous );
+    if (current != nullptr)
+    {
+        m_currentTreeItem = current;
+        uiConf.tablePropertiesWidget->clear();
     }
 }
 

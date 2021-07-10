@@ -1,19 +1,144 @@
 #include "JsonConfig.h"
 #include "JsonConfigDialog.h"
 #include <QMessageBox>
+#include <tuple>
 
 //////////////////////////////////////////////////////////////////////////
 extern std::string g_jsonConfigName;
-#define KEY_LOCALE "locale"
 IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
+
+//////////////////////////////////////////////////////////////////////////
+// Application config structure (example)
+//////////////////////////////////////////////////////////////////////////
+/*
+{
+    "CurrentSession": {
+        "Session": {
+            "name": "ISWC test",
+            "type": "LINK",
+            "value": "Sessions.Iswc-session"
+        },
+        "Monitors": [
+            {
+                "name": "Left camera monitor",
+                "type": "LINK",
+                "value": "Monitors.RtosDefault"
+            },
+            {
+                "name": "Right camera monitor",
+                "type": "LINK",
+                "value": "Monitors.RtosRight"
+            }
+        ],
+        "Logger": {
+            "name": "Default logger",
+            "type": "LINK",
+            "value": "Loggers.Default-oscar"
+        },
+        "Connection": {
+            "name": "Local",
+            "type": "LINK",
+            "value": "Connections.Local"
+        }
+    },
+    "Sessions" : {
+        "Iswc-session": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ],
+        "Crwc-session": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ]
+    },
+    "Monitors": {
+        "RtosDefault": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ],
+        "RtosRight": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ],
+        "LinuxDefault": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ]
+    },
+    "Loggers": {
+        "Default-oscar": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ]
+    },
+    "Connections": {
+        "Local": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ],
+        "Remote-wsl": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ],
+        "Remote-linux": [
+            {
+                "name": "prop1",
+                "type": "STRING",
+                "value": "val1"
+            },
+            ...
+        ]
+    }
+}
+*/
 
 const std::vector<std::string> CJsonConfig::s_vMainConfObjects
 {
     "CurrentSession",
     "Sessions",
     "Monitors",
-    "Logger",
+    "Loggers",
     "Connections"
+};
+
+const std::vector<std::pair<std::string, ETypeValue>> CJsonConfig::s_vCurrentSessionConfObjects
+{
+    {"Session link", ETypeValue::object_value},
+    {"Monitor links", ETypeValue::arraj_value},
+    {"Logger link", ETypeValue::object_value},
+    {"Connection link", ETypeValue::object_value}
 };
 
 const std::vector<SValueType> g_mapStrToKind
@@ -47,7 +172,8 @@ const std::vector<SValueView> g_loggerTemplate
 //////////////////////////////////////////////////////////////////////////
 CJsonConfig::CJsonConfig( QObject* parent ) :
     QObject(parent),
-    m_jsonConfigPath( g_jsonConfigName )
+    m_jsonConfigPath( g_jsonConfigName ),
+    m_jMain( Json::objectValue )
 {
     if (fs::exists( m_jsonConfigPath ))
     {
@@ -78,15 +204,34 @@ CJsonConfig::CJsonConfig( QObject* parent ) :
     }
 
     // check several objects are defined
-    Json::Value emptyObj;
-    Json::Reader reader;
-    reader.parse( "{}", emptyObj ); // prepare empty object
-
     for (const std::string& name : s_vMainConfObjects)
     {
         if (!GetSettings().isMember(name))
         {
-            GetSettings()[name] = emptyObj;
+            GetSettings()[name] = Json::Value( Json::objectValue );
+        }
+        // check and set default objects for CurrentSession
+        if (name == "CurrentSession")
+        {
+            Json::Value& currentSession = GetSettings()[name];
+            for (const auto& prop : s_vCurrentSessionConfObjects)
+            {
+                if (!currentSession.isMember(prop.first))
+                {
+                    switch (prop.second)
+                    {
+                    case ETypeValue::object_value:
+                        currentSession[prop.first] = Json::Value( Json::objectValue );
+                        break;
+                    case ETypeValue::arraj_value:
+                        currentSession[prop.first] = Json::Value( Json::arrayValue );
+                        break;
+                    default:
+                        throw std::runtime_error( "CurrentSession cannot contains simple type properties" );
+                        break;
+                    }
+                }
+            }
         }
     }
         
@@ -221,6 +366,15 @@ Json::ValueType CJsonConfig::StringTypeToJsonType( const QString& str )
         return str == t.name;
     } );
     return (it != g_mapStrToKind.cend()) ? it->jType : Json::ValueType::nullValue;
+}
+
+QString CJsonConfig::JsonTypeToStringType( Json::ValueType kind )
+{
+    std::vector<SValueType>::const_iterator it = std::find_if( g_mapStrToKind.cbegin(), g_mapStrToKind.cend(), [&kind]( const SValueType& t ) -> bool
+    {
+        return kind == t.jType;
+    } );
+    return (it != g_mapStrToKind.cend()) ? it->name : QString {};
 }
 
 QList<QString> CJsonConfig::GetValueTypesList()

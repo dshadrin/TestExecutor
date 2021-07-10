@@ -1,5 +1,9 @@
 <RCC>
   <qresource prefix="common">
+    <file>icons8-important-property-24.png</file>
+    <file>icons8-paste-as-text-24.png</file>
+    <file>icons8-name-tag-24.png</file>
+    <file>icons8-counter-50.png</file>
     <file>tools.png</file>
     <file>editor.png</file>
     <file>icons8-plus-32.png</file>
