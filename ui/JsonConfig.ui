@@ -72,6 +72,15 @@
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QTreeWidget" name="treeObjectsWidget">
+            <property name="mouseTracking">
+             <bool>true</bool>
+            </property>
+            <property name="tabletTracking">
+             <bool>true</bool>
+            </property>
+            <property name="contextMenuPolicy">
+             <enum>Qt::CustomContextMenu</enum>
+            </property>
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>
@@ -111,7 +120,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
-             <widget class="QPushButton" name="addEnvButton">
+             <widget class="QPushButton" name="addSetButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -146,7 +155,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="delEnvButton">
+             <widget class="QPushButton" name="delSetButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -181,7 +190,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="editEnvButton">
+             <widget class="QPushButton" name="editSetButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -413,7 +422,7 @@
        <enum>Qt::Horizontal</enum>
       </property>
       <property name="standardButtons">
-       <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Discard|QDialogButtonBox::Ok</set>
+       <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Reset</set>
       </property>
       <property name="centerButtons">
        <bool>true</bool>
@@ -422,6 +431,60 @@
     </item>
    </layout>
   </widget>
+  <action name="actionAddNewPropertiesSet">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../res/TestExecutor.qrc">
+     <normaloff>:/common/icons8-plus-32.png</normaloff>:/common/icons8-plus-32.png</iconset>
+   </property>
+   <property name="text">
+    <string>Create new properties set</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new set of properties</string>
+   </property>
+  </action>
+  <action name="actionDelPropertiesSet">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../res/TestExecutor.qrc">
+     <normaloff>:/common/icons8-minus-32.png</normaloff>:/common/icons8-minus-32.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete properties set</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete set of properties</string>
+   </property>
+  </action>
+  <action name="actionEditPropertiesSet">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../res/TestExecutor.qrc">
+     <normaloff>:/common/icons8-edit-property-32.png</normaloff>:/common/icons8-edit-property-32.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edit properties set</string>
+   </property>
+   <property name="toolTip">
+    <string>Edit set of properties</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../res/TestExecutor.qrc"/>
@@ -456,6 +519,54 @@
     <hint type="destinationlabel">
      <x>286</x>
      <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>addSetButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionAddNewPropertiesSet</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>671</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>delSetButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionDelPropertiesSet</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>671</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>349</x>
+     <y>284</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>editSetButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEditPropertiesSet</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>671</x>
+     <y>122</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>

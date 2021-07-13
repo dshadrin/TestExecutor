@@ -13,35 +13,42 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
 /*
 {
     "CurrentSession": {
+        "Flags": "0000",
         "Session": {
             "name": "ISWC test",
             "type": "LINK",
             "value": "Sessions.Iswc-session"
         },
-        "Monitors": [
-            {
-                "name": "Left camera monitor",
-                "type": "LINK",
-                "value": "Monitors.RtosDefault"
-            },
-            {
-                "name": "Right camera monitor",
-                "type": "LINK",
-                "value": "Monitors.RtosRight"
-            }
-        ],
+        "Monitors": {
+            "Flags": "0000",
+            "Links": [
+                {
+                    "name": "Left camera monitor",
+                    "type": "LINK",
+                    "value": "Monitors.RtosDefault"
+                },
+                {
+                    "name": "Right camera monitor",
+                    "type": "LINK",
+                    "value": "Monitors.RtosRight"
+                }
+            ]
+        },
         "Logger": {
+            "Flags": "0000",
             "name": "Default logger",
             "type": "LINK",
             "value": "Loggers.Default-oscar"
         },
         "Connection": {
+            "Flags": "0000",
             "name": "Local",
             "type": "LINK",
             "value": "Connections.Local"
         }
     },
     "Sessions" : {
+        "Flags": "0000",
         "Iswc-session": [
             {
                 "name": "prop1",
@@ -60,6 +67,7 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
         ]
     },
     "Monitors": {
+        "Flags": "0000",
         "RtosDefault": [
             {
                 "name": "prop1",
@@ -86,6 +94,7 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
         ]
     },
     "Loggers": {
+        "Flags": "0000",
         "Default-oscar": [
             {
                 "name": "prop1",
@@ -96,6 +105,7 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
         ]
     },
     "Connections": {
+        "Flags": "0000",
         "Local": [
             {
                 "name": "prop1",
@@ -124,21 +134,42 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
 }
 */
 
-const std::vector<std::string> CJsonConfig::s_vMainConfObjects
+const size_t TI_NAME = 0;
+const size_t TI_MAIN_OBJ_FLAG = 1;
+const size_t TI_LINK_OBJ_FLAG = 2;
+
+const std::tuple<std::string, uint32_t> CJsonConfig::s_rootConfigNode
 {
-    "CurrentSession",
-    "Sessions",
-    "Monitors",
-    "Loggers",
-    "Connections"
+    "Configuration", JO_CONST
 };
 
-const std::vector<std::pair<std::string, ETypeValue>> CJsonConfig::s_vCurrentSessionConfObjects
+const std::vector<std::tuple<std::string, uint32_t>> CJsonConfig::s_vMainConfObjects
 {
-    {"Session link", ETypeValue::object_value},
-    {"Monitor links", ETypeValue::arraj_value},
-    {"Logger link", ETypeValue::object_value},
-    {"Connection link", ETypeValue::object_value}
+    {"CurrentSession",          JO_CONST  | JO_CURRENT_SESSION},
+    {"Defined Sessions",        JO_APPEND | JO_SESSIONS       },
+    {"Defined Monitors",        JO_APPEND | JO_MONITORS       },
+    {"Defined Loggers",         JO_APPEND | JO_LOGGERS        },
+    {"Defined Connections",     JO_APPEND | JO_CONNECTIONS    }
+};
+
+const std::vector<std::tuple<std::string, ETypeValue, uint32_t>> CJsonConfig::s_vCurrentSessionConfObjects
+{
+    {"Selected Session",    ETypeValue::object_value, JO_APPEND | JO_SESSIONS | JO_LINKS   },
+    {"Selected Monitors",   ETypeValue::object_value, JO_APPEND | JO_MONITORS | JO_LINKS   },
+    {"Selected Logger",     ETypeValue::object_value, JO_APPEND | JO_LOGGERS | JO_LINKS    },
+    {"Selected Connection", ETypeValue::object_value, JO_APPEND | JO_CONNECTIONS | JO_LINKS}
+};
+
+const size_t TI_FLAG = 0;
+const size_t TI_UNIT_NAME = 1;
+const size_t TI_MULTIPLE = 2;
+
+const std::vector<std::tuple<uint32_t, std::string, bool>> CJsonConfig::s_vFlagToUnitName
+{
+    {JO_SESSIONS,    "Session",     false},
+    {JO_MONITORS,    "Monitor",     true },
+    {JO_LOGGERS,     "Logger",      false},
+    {JO_CONNECTIONS, "Connection",  false}
 };
 
 const std::vector<SValueType> g_mapStrToKind
@@ -169,12 +200,34 @@ const std::vector<SValueView> g_loggerTemplate
     { "font-weight",         "10",               "INTEGER" }
 };
 
+std::string CJsonConfig::s_tmpConfigPath;
+
 //////////////////////////////////////////////////////////////////////////
 CJsonConfig::CJsonConfig( QObject* parent ) :
     QObject(parent),
     m_jsonConfigPath( g_jsonConfigName ),
     m_jMain( Json::objectValue )
 {
+    if (s_tmpConfigPath.empty())
+    {
+        fs::path p = m_jsonConfigPath;
+        p.replace_extension( ".tmp" );
+        s_tmpConfigPath = p.string();
+        RemoveTmpConfig();
+    }
+    InitConfig();
+}
+
+CJsonConfig::~CJsonConfig()
+{
+
+}
+
+void CJsonConfig::InitConfig()
+{
+    m_jMain.clear();
+
+    // load config file
     if (fs::exists( m_jsonConfigPath ))
     {
         size_t jFileSize = fs::file_size( m_jsonConfigPath );
@@ -183,48 +236,39 @@ CJsonConfig::CJsonConfig( QObject* parent ) :
             std::ifstream ifs( m_jsonConfigPath );
             if (ifs.good())
             {
-                // read file and remove extra data
-                std::string jStr;
-                std::string line;
-                while (!ifs.eof())
-                {
-                    std::getline( ifs, line );
-                    jStr.append( ba::trim_copy( line ) );
-                }
+                std::string jStr( jFileSize, 0 );
+                ifs.read( jStr.data(), jFileSize );
                 ifs.close();
 
                 Json::Reader reader;
 
                 if (!reader.parse( jStr, m_jMain ))
                 {
-                    QMessageBox::critical( Q_NULLPTR, QString("ERROR!"), QString("Config parsing failed"));
+                    QMessageBox::critical( Q_NULLPTR, QString( "ERROR!" ), QString( "Config parsing failed" ) );
                 }
             }
         }
     }
 
     // check several objects are defined
-    for (const std::string& name : s_vMainConfObjects)
+    for (const auto& [name, flag] : s_vMainConfObjects)
     {
-        if (!GetSettings().isMember(name))
+        if (!GetSettings().isMember( name ))
         {
             GetSettings()[name] = Json::Value( Json::objectValue );
         }
         // check and set default objects for CurrentSession
-        if (name == "CurrentSession")
+        if (flag == (JO_CONST | JO_CURRENT_SESSION))
         {
             Json::Value& currentSession = GetSettings()[name];
-            for (const auto& prop : s_vCurrentSessionConfObjects)
+            for (const auto& [link, type, lflag] : s_vCurrentSessionConfObjects)
             {
-                if (!currentSession.isMember(prop.first))
+                if (!currentSession.isMember( link ))
                 {
-                    switch (prop.second)
+                    switch (type)
                     {
                     case ETypeValue::object_value:
-                        currentSession[prop.first] = Json::Value( Json::objectValue );
-                        break;
-                    case ETypeValue::arraj_value:
-                        currentSession[prop.first] = Json::Value( Json::arrayValue );
+                        currentSession[link] = Json::Value( Json::objectValue );
                         break;
                     default:
                         throw std::runtime_error( "CurrentSession cannot contains simple type properties" );
@@ -234,13 +278,8 @@ CJsonConfig::CJsonConfig( QObject* parent ) :
             }
         }
     }
-        
+
     WriteJsonConfig();
-}
-
-CJsonConfig::~CJsonConfig()
-{
-
 }
 
 void CJsonConfig::WriteJsonConfig()
@@ -315,6 +354,35 @@ std::vector<SValueView> CJsonConfig::GetProperties( const QString path )
     return propsSet;
 }
 
+bool CJsonConfig::IsNodeExists( const QString path )
+{
+    OJsonValue ov = GetValue( path );
+    return ov.has_value();
+}
+
+void CJsonConfig::RemoveTmpConfig()
+{
+    if (fs::exists( s_tmpConfigPath ))
+    {
+        fs::remove( s_tmpConfigPath );
+    }
+}
+
+void CJsonConfig::CreateTmpConfig()
+{
+    fs::copy_file( m_jsonConfigPath, s_tmpConfigPath, fs::copy_options::overwrite_existing );
+}
+
+void CJsonConfig::RestoreConfig()
+{
+    if (fs::exists( s_tmpConfigPath ))
+    {
+        fs::copy_file( s_tmpConfigPath, m_jsonConfigPath, fs::copy_options::overwrite_existing );
+        InitConfig();
+        RemoveTmpConfig();
+    }
+}
+
 Json::Value& CJsonConfig::FindObject( const QString path )
 {
     auto& obj = GetSettings();
@@ -385,5 +453,59 @@ QList<QString> CJsonConfig::GetValueTypesList()
         result.append( t.name );
     }
     return result;
+}
+
+uint32_t CJsonConfig::GetNodeFlagsByName( const QString& nameNode )
+{
+    const std::string str = nameNode.toStdString();
+    if (str == std::get<TI_NAME>( s_rootConfigNode ))
+    {
+        return std::get<TI_MAIN_OBJ_FLAG>( s_rootConfigNode );
+    }
+    std::vector<std::tuple<std::string, uint32_t>>::const_iterator i =
+        std::find_if( s_vMainConfObjects.cbegin(), s_vMainConfObjects.cend(), [&str]( auto& item ) -> bool
+    {
+        return str == std::get<TI_NAME>( item );
+    } );
+
+    if (i != s_vMainConfObjects.cend())
+    {
+        return std::get<TI_MAIN_OBJ_FLAG>( *i );
+    }
+    else
+    {
+        std::vector<std::tuple<std::string, ETypeValue, uint32_t>>::const_iterator j =
+            std::find_if( s_vCurrentSessionConfObjects.cbegin(), s_vCurrentSessionConfObjects.cend(), [&str]( auto& item ) -> bool
+        {
+            return str == std::get<TI_NAME>( item );
+        } );
+
+        if (j != s_vCurrentSessionConfObjects.cend())
+        {
+            return std::get<TI_LINK_OBJ_FLAG>( *j );
+        }
+    }
+    return 0;
+}
+
+QString CJsonConfig::GetRootNodeName()
+{
+    return std::get<TI_NAME>( s_rootConfigNode ).c_str();
+}
+
+QString CJsonConfig::GetUnitNameByFlag( uint32_t flag, bool* isMultiple )
+{
+    const std::vector<std::tuple<uint32_t, std::string, bool>>::const_iterator it =
+        std::find_if( s_vFlagToUnitName.cbegin(), s_vFlagToUnitName.cend(), [flag]( const auto& item ) ->bool
+    {
+        return flag == std::get<TI_FLAG>( item );
+    } );
+
+    if (isMultiple)
+    {
+        *isMultiple = (it != s_vFlagToUnitName.cend()) ? std::get<TI_MULTIPLE>( *it ) : false;
+    }
+
+    return (it != s_vFlagToUnitName.cend()) ? std::get<TI_UNIT_NAME>( *it ).c_str() : "";
 }
 
