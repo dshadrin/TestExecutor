@@ -127,14 +127,15 @@ void TestExecutor::ThreadIO()
 
 void TestExecutor::OptionsDialog()
 {
-    QScopedPointer<CJsonConfigDialog> dlg(new CJsonConfigDialog());
+    QScopedPointer<CJsonConfigDialog> dlg( new CJsonConfigDialog( m_config ) );
     if ( dlg )
     {
-        CJsonConfigDialog* ptr = dlg.get();
-        dlg->InitDialog( m_config );
-        if ( dlg->exec() == QDialog::Accepted )
+        QDialog::DialogCode code = (QDialog::DialogCode)dlg->exec();
+        if ( code == QDialog::Accepted )
         {
-//             m_config->StoreOptionValues( ptr );
+        }
+        else
+        {
         }
     }
 }

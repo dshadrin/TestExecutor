@@ -19,44 +19,56 @@ class CJsonConfigDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CJsonConfigDialog(QWidget* parent = Q_NULLPTR);
+    explicit CJsonConfigDialog(CJsonConfig* pConfig, QWidget* parent = Q_NULLPTR);
     ~CJsonConfigDialog();
 
-    void InitDialog(CJsonConfig* pConfig);
-
-    void SetDirty( bool isDirty );
-    void FillTableProperties();
-    int FindTableProprtyRow( const QString& name ); //return -1 if not found
+    void InitDialog();
 
 private:
-    QString GetCurrentTreePath();
+    QString GetTreePath( const QTreeWidgetItem* node, bool withRootNode = false );
     uint32_t GetFlagsTreeNode( QTreeWidgetItem* node );
-    void SavePropertyValue( int row, const QString& name, const QString& value, const QString& type );
     void FillTreeNode( const Json::Value& jValue, QTreeWidgetItem* parent );
+    QTreeWidgetItem* GetCurrentTreeNode();
+
+    int AddNewPropertyValue( const SValueView& vv );
+    void SetPropertyValue( int row, const SValueView& vv );
+    SValueView GetPropertyValue( int row );
+    void FillTableProperties();
+    void FillTableProperties( const VectorValues& props );
+    int FindTablePropertyRow( const QString& name ); //return -1 if not found
+    void ClearTableProperties();
+
     void clickOkButton();
     void clickCancelButton();
     void clickDiscardButton();
     void clickApplyButton();
     void Reset();
 
+    void RestoreTreeCursorPosition( const QString& parentText, const QString& currText, const QString& flags );
+
+    void SetDirty( bool isDirty );
+
 private Q_SLOTS:
     void addNewProperty();
     void delProperty();
     void editProperty();
+    void itemTableChanged( QTableWidgetItem* item );
+    void SaveTablePropertiesSet( QTreeWidgetItem* previous );
 
     void addNewPropertiesSet();
     void delPropertiesSet();
     void editPropertiesSet();
+    void itemTreeChanged( QTreeWidgetItem* current, QTreeWidgetItem* previous );
+    void treeContextMenuRequested( const QPoint& pos );
 
     void clickButton( QAbstractButton* button );
 
-    void itemChanged( QTreeWidgetItem* current, QTreeWidgetItem* previous );
-    void treeContextMenuRequested( const QPoint& pos );
+protected:
+    void closeEvent( QCloseEvent* event ) override;
 
 private:
     Ui::JsonConfigDialog uiConf;
     CJsonConfig* m_pConfig;
-    QTreeWidgetItem* m_currentTreeItem;
     QMenu* m_treeContextMnu;
     bool m_bDirty;
 };

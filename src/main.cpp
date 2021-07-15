@@ -9,13 +9,13 @@ std::string g_jsonConfigName;
 int main(int argc, char *argv[])
 {
     int result = -1;
+    QApplication a( argc, argv );
 
     try
     {
         fs::path jsonConfPath( fs::current_path() / fs::path( argv[0] ).filename().replace_extension( ".conf" ) );
         g_jsonConfigName = jsonConfPath.string();
 
-        QApplication a( argc, argv );
         TestExecutor w;
         w.show();
         result = a.exec();

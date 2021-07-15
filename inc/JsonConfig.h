@@ -37,8 +37,11 @@ enum : uint32_t
     JO_MAIN_MASK = 0x00FF,
     JO_LINKS = 0x0100,
     JO_CONST = 0x1000,
-    JO_APPEND = 0x2000
+    JO_APPEND = 0x2000,
+    JO_ACCESS_MASK = 0xF000
 };
+
+typedef std::vector<SValueView> VectorValues;
 
 //////////////////////////////////////////////////////////////////////////
 class CJsonConfig : public QObject
@@ -50,15 +53,19 @@ public:
     ~CJsonConfig();
 
     void InitConfig();
+    std::string GetGeometry();
     Json::Value& GetSettings() { return m_jMain; }
     void WriteJsonConfig();
     void SaveGeometry( const std::string& value );
-    std::string GetGeometry();
-    std::vector<SValueView> GetProperties(const QString path);
-    bool IsNodeExists( const QString path );
+    VectorValues GetProperties(const QString& path);
+    bool IsNodeExists( const QString& path );
+    bool SaveProperties( const QString& path, const VectorValues& props, bool isNew = false );
+    bool SaveValue( const QString& path, const SValueView& value, bool isNew = false );
+    void RemoveNode( const QString& path, const QString& nodeName );
+    void RenameKeyName( const QString& path, const QString& oldKey, const QString& newKey );
 
-    template<typename _Type>
-    OValueView Get(const QString& path, int index);
+//     template<typename _Type>
+//     OValueView Get(const QString& path, int index);
 
     static ETypeValue StringTypeToProjectType( const QString& str );
     static Json::ValueType StringTypeToJsonType( const QString& str );
@@ -66,16 +73,17 @@ public:
     static QList<QString> GetValueTypesList();
     static uint32_t GetNodeFlagsByName( const QString& nameNode );
     static QString GetRootNodeName();
-    static QString GetUnitNameByFlag( uint32_t flag, bool* isMultiple );
+    static QString GetUnitNameByFlags( uint32_t flag, bool* isMultiple = nullptr );
+    static const VectorValues& GetUnitTemplateByFlags( uint32_t flag );
 
-    // config false operations
-    static void RemoveTmpConfig();
-    void CreateTmpConfig();
-    void RestoreConfig();
+    // config backup/undo operations
+    void RemoveBackup();
+    void CreateBackup();
+    void RestoreFromBackup();
 
 private:
-    Json::Value& FindObject( const QString path );
-    OJsonValue GetValue( const QString path );
+    static const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>>::const_iterator FindUnitDefinition( uint32_t flag );
+    OJsonValue GetValue( const QString& path );
     // recursive find by list
     OJsonValue FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end );
 
@@ -83,10 +91,10 @@ private:
     std::string m_jsonConfigPath;
     std::string m_localeString;
     Json::Value m_jMain;
-    static std::string s_tmpConfigPath;
+    Json::Value m_jBackup;
     static const std::tuple<std::string, uint32_t> s_rootConfigNode;
     static const std::vector<std::tuple<std::string, uint32_t>> s_vMainConfObjects;
     static const std::vector<std::tuple<std::string, ETypeValue, uint32_t>> s_vCurrentSessionConfObjects;
-    static const std::vector<std::tuple<uint32_t, std::string, bool>> s_vFlagToUnitName;
+    static const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>> s_vFlagToUnit;
     DECLARE_MODULE_TAG;
 };

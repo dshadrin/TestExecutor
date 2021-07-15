@@ -1,7 +1,6 @@
 #include "JsonConfig.h"
 #include "JsonConfigDialog.h"
 #include <QMessageBox>
-#include <tuple>
 
 //////////////////////////////////////////////////////////////////////////
 extern std::string g_jsonConfigName;
@@ -13,14 +12,12 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
 /*
 {
     "CurrentSession": {
-        "Flags": "0000",
         "Session": {
             "name": "ISWC test",
             "type": "LINK",
             "value": "Sessions.Iswc-session"
         },
         "Monitors": {
-            "Flags": "0000",
             "Links": [
                 {
                     "name": "Left camera monitor",
@@ -35,20 +32,17 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
             ]
         },
         "Logger": {
-            "Flags": "0000",
             "name": "Default logger",
             "type": "LINK",
             "value": "Loggers.Default-oscar"
         },
         "Connection": {
-            "Flags": "0000",
             "name": "Local",
             "type": "LINK",
             "value": "Connections.Local"
         }
     },
     "Sessions" : {
-        "Flags": "0000",
         "Iswc-session": [
             {
                 "name": "prop1",
@@ -67,7 +61,6 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
         ]
     },
     "Monitors": {
-        "Flags": "0000",
         "RtosDefault": [
             {
                 "name": "prop1",
@@ -94,7 +87,6 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
         ]
     },
     "Loggers": {
-        "Flags": "0000",
         "Default-oscar": [
             {
                 "name": "prop1",
@@ -105,7 +97,6 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
         ]
     },
     "Connections": {
-        "Flags": "0000",
         "Local": [
             {
                 "name": "prop1",
@@ -155,21 +146,67 @@ const std::vector<std::tuple<std::string, uint32_t>> CJsonConfig::s_vMainConfObj
 const std::vector<std::tuple<std::string, ETypeValue, uint32_t>> CJsonConfig::s_vCurrentSessionConfObjects
 {
     {"Selected Session",    ETypeValue::object_value, JO_APPEND | JO_SESSIONS | JO_LINKS   },
-    {"Selected Monitors",   ETypeValue::object_value, JO_APPEND | JO_MONITORS | JO_LINKS   },
+    {"Selected Monitors",   ETypeValue::arraj_value,  JO_APPEND | JO_MONITORS | JO_LINKS   },
     {"Selected Logger",     ETypeValue::object_value, JO_APPEND | JO_LOGGERS | JO_LINKS    },
     {"Selected Connection", ETypeValue::object_value, JO_APPEND | JO_CONNECTIONS | JO_LINKS}
 };
 
+const VectorValues g_loggerTemplate
+{
+    { "name",                "TestExecutor log", "STRING"  },
+    { "host",                "localhost",        "STRING"  },
+    { "port",                "2100",             "INTEGER" },
+    { "retry",               "5",                "INTEGER" },
+    { "max_message_size",    "2048",             "INTEGER" },
+    { "module_tag_size",     "4",                "INTEGER" },
+    { "severity",            "DEBUG",            "STRING"  },
+    { "bg-color",            "lightGray",        "STRING"  },
+    { "text-color",          "darkBlue",         "STRING"  },
+    { "font-name",           "Courier New",      "STRING"  },
+    { "font-weight",         "10",               "INTEGER" }
+};
+
+const VectorValues g_monitorTemplate
+{
+    { "name",                "RTOS camera monitor", "STRING"  },
+    { "connection-string",   "localhost:2002",      "STRING"  },
+    { "font-name",           "Lucida Console",      "STRING"  },
+    { "font-weight",         "9",                   "INTEGER" },
+    { "bg-color",            "lightGray",           "STRING"  },
+    { "cmd-text-color",      "darkBlue",            "STRING"  },
+    { "camera-text-color",   "darkBlue",            "STRING"  }
+};
+
+const VectorValues g_connectionTemplate
+{
+    { "name",                "Local environment execution", "STRING"  },
+    { "is-remote-location",  "false",                       "BOOLEAN" },
+    { "host",                "",                            "STRING"  },
+    { "port",                "22",                          "INTEGER" },
+    { "password",            "",                            "STRING"  },
+    { "private-key-file",    "",                            "STRING"  }
+};
+
+const VectorValues g_sessionTemplate
+{
+    { "execution-file",      "", "STRING" },
+    { "command-line",        "", "STRING" },
+    { "environment",         "[]", "ARRAY"}
+};
+
+const VectorValues g_emptyTemplate {};
+
 const size_t TI_FLAG = 0;
 const size_t TI_UNIT_NAME = 1;
 const size_t TI_MULTIPLE = 2;
+const size_t TI_TEMPLATE = 3;
 
-const std::vector<std::tuple<uint32_t, std::string, bool>> CJsonConfig::s_vFlagToUnitName
+const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>> CJsonConfig::s_vFlagToUnit
 {
-    {JO_SESSIONS,    "Session",     false},
-    {JO_MONITORS,    "Monitor",     true },
-    {JO_LOGGERS,     "Logger",      false},
-    {JO_CONNECTIONS, "Connection",  false}
+    {JO_SESSIONS,    "Session",     false, g_sessionTemplate   },
+    {JO_MONITORS,    "Monitor",     true,  g_monitorTemplate   },
+    {JO_LOGGERS,     "Logger",      false, g_loggerTemplate    },
+    {JO_CONNECTIONS, "Connection",  false, g_connectionTemplate}
 };
 
 const std::vector<SValueType> g_mapStrToKind
@@ -185,36 +222,12 @@ const std::vector<SValueType> g_mapStrToKind
     {"LINK",        Json::ValueType::stringValue,  ETypeValue::link}
 };
 
-const std::vector<SValueView> g_loggerTemplate
-{
-    { "name",                "TestExecutor log", "STRING"  },
-    { "host",                "localhost",        "STRING"  },
-    { "port",                "2100",             "INTEGER" },
-    { "retry",               "5",                "INTEGER" },
-    { "max_message_size",    "2048",             "INTEGER" },
-    { "module_tag_size",     "4",                "INTEGER" },
-    { "severity",            "DEBUG",            "STRING"  },
-    { "bg-color",            "lightGray",        "STRING"  },
-    { "text-color",          "darkBlue",         "STRING"  },
-    { "font-name",           "Courier New",      "STRING"  },
-    { "font-weight",         "10",               "INTEGER" }
-};
-
-std::string CJsonConfig::s_tmpConfigPath;
-
 //////////////////////////////////////////////////////////////////////////
 CJsonConfig::CJsonConfig( QObject* parent ) :
     QObject(parent),
     m_jsonConfigPath( g_jsonConfigName ),
     m_jMain( Json::objectValue )
 {
-    if (s_tmpConfigPath.empty())
-    {
-        fs::path p = m_jsonConfigPath;
-        p.replace_extension( ".tmp" );
-        s_tmpConfigPath = p.string();
-        RemoveTmpConfig();
-    }
     InitConfig();
 }
 
@@ -270,6 +283,9 @@ void CJsonConfig::InitConfig()
                     case ETypeValue::object_value:
                         currentSession[link] = Json::Value( Json::objectValue );
                         break;
+                    case ETypeValue::arraj_value:
+                        currentSession[link] = Json::Value( Json::arrayValue );
+                        break;
                     default:
                         throw std::runtime_error( "CurrentSession cannot contains simple type properties" );
                         break;
@@ -307,9 +323,9 @@ std::string CJsonConfig::GetGeometry()
     return GetSettings()[KEY_GEOMETRY].asCString();
 }
 
-std::vector<SValueView> CJsonConfig::GetProperties( const QString path )
+VectorValues CJsonConfig::GetProperties( const QString& path )
 {
-    std::vector<SValueView> propsSet;
+    VectorValues propsSet;
     OJsonValue v = GetValue( path );
     if (v && (v->isArray() || v->isObject()))
     {
@@ -320,7 +336,7 @@ std::vector<SValueView> CJsonConfig::GetProperties( const QString path )
             Json::Value& item = v.get()[i];
             vv.name = (item.isMember( KEY_PROP_NAME )) ? item[KEY_PROP_NAME].asCString() : "";
             vv.type = (item.isMember( KEY_PROP_TYPE )) ? item[KEY_PROP_TYPE].asCString() : "STRING";
-            vv.value = (item.isMember( KEY_PROP_VALUE )) ? item[KEY_PROP_VALUE].asCString() : "";
+//             vv.value = (item.isMember( KEY_PROP_VALUE )) ? item[KEY_PROP_VALUE].asCString() : "";
             if (item.isMember( KEY_PROP_VALUE ))
             {
                 ETypeValue t = StringTypeToProjectType( vv.type );
@@ -332,15 +348,26 @@ std::vector<SValueView> CJsonConfig::GetProperties( const QString path )
                     vv.value = Json::FastWriter().write( item ).c_str();
                     break;
                 case ETypeValue::null:
+                    vv.value = "";
+                    vv.type = "STRING";
+                    break;
                 case ETypeValue::boolean_value:
+                    vv.value = value.asBool() ? "true" : "false";
+                    break;
                 case ETypeValue::integer_number:
+                    vv.value = QString::number( value.asInt64() );
+                    break;
                 case ETypeValue::unsigned_number:
+                    vv.value = QString::number( value.asUInt64() );
+                    break;
                 case ETypeValue::float_number:
+                    vv.value = QString::number( value.asDouble() );
+                    break;
                 case ETypeValue::string_value:
                 case ETypeValue::hex_number:
                 case ETypeValue::link:
                 default:
-                    vv.value = value.asCString();
+                    vv.value = QString::fromStdString( value.asString() );
                     break;
                 }
             }
@@ -354,54 +381,174 @@ std::vector<SValueView> CJsonConfig::GetProperties( const QString path )
     return propsSet;
 }
 
-bool CJsonConfig::IsNodeExists( const QString path )
+bool CJsonConfig::IsNodeExists( const QString& path )
 {
     OJsonValue ov = GetValue( path );
     return ov.has_value();
 }
 
-void CJsonConfig::RemoveTmpConfig()
+bool CJsonConfig::SaveProperties( const QString& path, const VectorValues& props, bool isNew )
 {
-    if (fs::exists( s_tmpConfigPath ))
+    OJsonValue jOldVal = GetValue( path );
+    if (isNew && jOldVal.has_value())
     {
-        fs::remove( s_tmpConfigPath );
+        QMessageBox::warning( Q_NULLPTR, QString( "Error" ), QString( "Configuration: Node " + path + " exists already" ) );
+        return false; // node exist
     }
-}
 
-void CJsonConfig::CreateTmpConfig()
-{
-    fs::copy_file( m_jsonConfigPath, s_tmpConfigPath, fs::copy_options::overwrite_existing );
-}
-
-void CJsonConfig::RestoreConfig()
-{
-    if (fs::exists( s_tmpConfigPath ))
+    QList<QStringView> parsedPath = util::SplitString( path, u'.' );
+    std::string key = parsedPath.rbegin()->toString().toStdString();
+    parsedPath.removeLast();
+    OJsonValue jParent = FindValue( GetSettings(), parsedPath.cbegin(), parsedPath.cend() );
+    if (!jParent.has_value())
     {
-        fs::copy_file( s_tmpConfigPath, m_jsonConfigPath, fs::copy_options::overwrite_existing );
-        InitConfig();
-        RemoveTmpConfig();
+        // parent not exist - logical error
+        throw std::logic_error( "Configuration: Cannot create node " + path.toStdString() );
     }
-}
 
-Json::Value& CJsonConfig::FindObject( const QString path )
-{
-    auto& obj = GetSettings();
-    for (auto it : QStringTokenizer { path, u'.' })
+    Json::Value jVal;
+    jVal = Json::Value( Json::arrayValue );
+    for (const SValueView& view : props)
     {
-        std::string tok = it.toString().toStdString();
-        if (!tok.empty())
+        ETypeValue jt = StringTypeToProjectType( view.type );
+        if (jt == ETypeValue::null)
+            jt = ETypeValue::string_value;  // default type is string
+
+        Json::Value jObj = Json::Value( Json::objectValue );
+        jObj[KEY_PROP_NAME] = view.name.toStdString();
+        jObj[KEY_PROP_TYPE] = view.type.toStdString();
+        QString sVal = view.value;
+
+        bool status = util::CheckStringValue( sVal, jt );
+        if (!status)
         {
-            auto& item = obj[tok];
-            if (item.isObject())
-            {
-                obj = item;
-            }
+            QMessageBox::warning( Q_NULLPTR, QString( "Error data type" ), QString( "Configuration: Value " + sVal + " does not " + view.type + " type" ) );
+            return false; // error data type
+        }
+
+        switch (jt)
+        {
+        case ETypeValue::boolean_value:
+            jObj[KEY_PROP_VALUE] = ( sVal.compare( "true", Qt::CaseSensitivity::CaseInsensitive ) == 0 ||
+                                     sVal.compare( "on", Qt::CaseSensitivity::CaseInsensitive ) == 0 ||
+                                     sVal.compare( "auto", Qt::CaseSensitivity::CaseInsensitive ) == 0 ||
+                                     sVal.compare( "0" ) != 0) ? true : false;
+            break;
+        case ETypeValue::float_number:
+            jObj[KEY_PROP_VALUE] = sVal.toDouble();
+            break;
+        case ETypeValue::integer_number:
+            jObj[KEY_PROP_VALUE] = sVal.toLongLong();
+            break;
+        case ETypeValue::unsigned_number:
+            jObj[KEY_PROP_VALUE] = sVal.toULongLong();
+            break;
+        case ETypeValue::arraj_value:
+        case ETypeValue::object_value:
+        {
+            Json::Value v;
+            Json::Reader().parse( sVal.toStdString(), v );
+            jObj[KEY_PROP_VALUE] = v;
+        }
+            break;
+        case ETypeValue::hex_number:
+        case ETypeValue::null:
+        case ETypeValue::string_value:      // always true
+        default:
+            jObj[KEY_PROP_VALUE] = sVal.toStdString();
+        }
+
+        jVal.append( jObj );
+    }
+    jParent.value()[key] = jVal;
+    WriteJsonConfig();
+    return true;
+}
+
+bool CJsonConfig::SaveValue( const QString& path, const SValueView& value, bool isNew )
+{
+    bool status = false;
+    OJsonValue jVal = GetValue( path );
+    if (jVal.has_value())
+    {
+        if (jVal->isObject())
+        {
+            jVal->clear();
+            jVal.get()[KEY_PROP_NAME] = value.name.toStdString();
+            jVal.get()[KEY_PROP_VALUE] = value.value.toStdString();
+            jVal.get()[KEY_PROP_TYPE] = value.type.toStdString();
+            status = true;
+        }
+        else if (jVal->isArray())
+        {
+            Json::Value jv = Json::objectValue;
+            jv[KEY_PROP_NAME] = value.name.toStdString();
+            jv[KEY_PROP_VALUE] = value.value.toStdString();
+            jv[KEY_PROP_TYPE] = value.type.toStdString();
+            Json::ArrayIndex index = jVal->size();
+            jVal->insert( index, jv );
+            status = true;
+        }
+        WriteJsonConfig();
+    }
+    return status;
+}
+
+void CJsonConfig::RemoveNode( const QString& path, const QString& nodeName )
+{
+    if (!path.isEmpty() && !nodeName.isEmpty())
+    {
+        OJsonValue jVal = GetValue( path );
+        if (jVal.has_value())
+        {
+            jVal->removeMember( nodeName.toStdString() );
         }
     }
-    return obj;
 }
 
-OJsonValue CJsonConfig::GetValue( const QString path )
+void CJsonConfig::RenameKeyName( const QString& path, const QString& oldKey, const QString& newKey )
+{
+    OJsonValue jv = GetValue( path );
+    if (jv.has_value())
+    {
+        if (jv->isObject())
+        {
+            if (jv->isMember( oldKey.toStdString() ))
+            {
+                Json::Value value = jv.get()[oldKey.toStdString()];
+                jv->removeMember( oldKey.toStdString() );
+                jv.get()[newKey.toStdString()] = value;
+            }
+        }
+        else if (jv->isArray())
+        {
+            // TODO:
+        }
+        WriteJsonConfig();
+    }
+}
+
+void CJsonConfig::RemoveBackup()
+{
+    m_jBackup.clear();
+    WriteJsonConfig();
+}
+
+void CJsonConfig::CreateBackup()
+{
+    m_jBackup = m_jMain;
+    WriteJsonConfig();
+}
+
+void CJsonConfig::RestoreFromBackup()
+{
+    m_jMain = m_jBackup;
+    WriteJsonConfig();
+    InitConfig();
+    m_jBackup.clear();
+}
+
+OJsonValue CJsonConfig::GetValue( const QString& path )
 {
     QList<QStringView> parsedPath = util::SplitString( path, u'.' );
     return FindValue( GetSettings(), parsedPath.cbegin(), parsedPath.cend() );
@@ -493,19 +640,31 @@ QString CJsonConfig::GetRootNodeName()
     return std::get<TI_NAME>( s_rootConfigNode ).c_str();
 }
 
-QString CJsonConfig::GetUnitNameByFlag( uint32_t flag, bool* isMultiple )
+QString CJsonConfig::GetUnitNameByFlags( uint32_t flag, bool* isMultiple )
 {
-    const std::vector<std::tuple<uint32_t, std::string, bool>>::const_iterator it =
-        std::find_if( s_vFlagToUnitName.cbegin(), s_vFlagToUnitName.cend(), [flag]( const auto& item ) ->bool
-    {
-        return flag == std::get<TI_FLAG>( item );
-    } );
+    auto& it = FindUnitDefinition( flag );
 
     if (isMultiple)
     {
-        *isMultiple = (it != s_vFlagToUnitName.cend()) ? std::get<TI_MULTIPLE>( *it ) : false;
+        *isMultiple = (it != s_vFlagToUnit.cend()) ? std::get<TI_MULTIPLE>( *it ) : false;
     }
 
-    return (it != s_vFlagToUnitName.cend()) ? std::get<TI_UNIT_NAME>( *it ).c_str() : "";
+    return (it != s_vFlagToUnit.cend()) ? std::get<TI_UNIT_NAME>( *it ).c_str() : "";
 }
 
+const VectorValues& CJsonConfig::GetUnitTemplateByFlags( uint32_t flag )
+{
+    auto& it = FindUnitDefinition( flag );
+    return (it != s_vFlagToUnit.cend()) ? std::get<TI_TEMPLATE>( *it ) : g_emptyTemplate;
+}
+
+const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>>::const_iterator CJsonConfig::FindUnitDefinition( uint32_t flag )
+{
+    const uint32_t unitFlag = flag & JO_MAIN_MASK;
+    const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>>::const_iterator it =
+        std::find_if( s_vFlagToUnit.cbegin(), s_vFlagToUnit.cend(), [unitFlag]( const auto& item ) ->bool
+    {
+        return unitFlag == std::get<TI_FLAG>( item );
+    } );
+    return it;
+}
