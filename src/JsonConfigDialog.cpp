@@ -111,7 +111,7 @@ void CJsonConfigDialog::InitDialog()
         m_pConfig->CreateBackup();
 
         // fill object tree
-        auto jRoot = m_pConfig->GetSettings();
+        const Json::Value& jRoot = const_cast<const CJsonConfig*>(m_pConfig)->GetSettings();
 
         QTreeWidgetItem* currentItem = new QTreeWidgetItem( (QTreeWidget*)nullptr,
                                                             QStringList { CJsonConfig::GetRootNodeName(),
@@ -148,17 +148,34 @@ void CJsonConfigDialog::FillTreeNode( const Json::Value& jValue, QTreeWidgetItem
             uint32_t uiFlags = CJsonConfig::GetNodeFlagsByName( itemName );
             if (uiFlags == 0 && parent)
             {
-                const uint32_t parentFlags = parent->text( TREE_FLAGS_COLUMN ).toInt( nullptr, HEX_BASE );
+                const uint32_t parentFlags = GetFlagsTreeNode( parent );
                 if (parentFlags & JO_ACCESS_MASK)
                 {
-                    uiFlags = parent->text( TREE_FLAGS_COLUMN ).toInt( nullptr, HEX_BASE ) & JO_MAIN_MASK;
+                    uiFlags = parentFlags & JO_MAIN_MASK;
                 }
             }
             if (uiFlags)
             {
                 const QString flags = QString().asprintf( "%04X", uiFlags );
                 QTreeWidgetItem* item = new QTreeWidgetItem( parent, QStringList { itemName, flags }, (int)CJsonConfig::StringTypeToProjectType( sType ) );
-                FillTreeNode( jv, item );
+
+                if (uiFlags & JO_LINKS)
+                {
+                    VectorValues vv = m_pConfig->GetProperties( GetTreePath( parent ) + "." + itemName );
+                    if (!vv.empty())
+                    {
+                        for (const auto& v : vv)
+                        {
+                            QTreeWidgetItem* newItem = new QTreeWidgetItem( item, QStringList { v.name, QString().asprintf( "%04X", uiFlags & ~JO_ACCESS_MASK ) }, (int)ETypeValue::link );
+                            newItem->setData( TREE_VALUE_COLUMN, Qt::UserRole, v.value );
+                            item->addChild( newItem );
+                        }
+                    }
+                }
+                else
+                {
+                    FillTreeNode( jv, item );
+                }
                 items.append( item );
             }
         }
@@ -191,11 +208,19 @@ QTreeWidgetItem* CJsonConfigDialog::GetCurrentTreeNode()
 
 void CJsonConfigDialog::FillTableProperties()
 {
-    QString path = GetTreePath( GetCurrentTreeNode() );
+    uint32_t uiFlags = GetFlagsTreeNode( GetCurrentTreeNode() );
+    bool linkPath = ((uiFlags & JO_LINKS) && (uiFlags & JO_ACCESS_MASK) == 0);
+    QString path = linkPath ? GetCurrentTreeNode()->data( TREE_VALUE_COLUMN, Qt::UserRole ).toString() : GetTreePath( GetCurrentTreeNode() );
     if (!path.isEmpty())
     {
         VectorValues props = m_pConfig->GetProperties( path );
         FillTableProperties( props );
+        if (linkPath)
+        {
+            uiConf.addParamButton->setEnabled( false );
+            uiConf.editParamButton->setEnabled( false );
+            uiConf.delParamButton->setEnabled( false );
+        }
     }
 }
 
@@ -214,7 +239,6 @@ void CJsonConfigDialog::FillTableProperties( const VectorValues& props )
     {
         uiConf.editParamButton->setEnabled( false );
         uiConf.delParamButton->setEnabled( false );
-
     }
 }
 
@@ -453,16 +477,14 @@ void CJsonConfigDialog::addNewPropertiesSet()
     bool isMultiple = false;
     uint32_t flags = GetFlagsTreeNode( GetCurrentTreeNode() );
     uint32_t linkFlag = flags & JO_LINKS;
-    QString title = (linkFlag) ? tr("Select ") : tr("Define new ");
     QString unit = CJsonConfig::GetUnitNameByFlags( flags, &isMultiple );
-    title.append( unit );
 
     bool ok = false;
 
     if (!linkFlag)
     {
         // add properties set
-        QString text = QInputDialog::getText( this, title,
+        QString text = QInputDialog::getText( this, "Define new " + unit,
                                               unit + tr( " name:" ), QLineEdit::Normal,
                                               "", &ok );
         if (ok && !text.isEmpty())
@@ -612,7 +634,7 @@ void CJsonConfigDialog::closeEvent( QCloseEvent* event )
 uint32_t CJsonConfigDialog::GetFlagsTreeNode( QTreeWidgetItem* node )
 {
     bool ok = false;
-    uint32_t flags = node ? node->text( 1 ).toULong( &ok, HEX_BASE ) : 0;
+    uint32_t flags = node ? node->text( TREE_FLAGS_COLUMN ).toUInt( &ok, HEX_BASE ) : 0;
     return ok ? flags : JO_UNSPECIFIED;
 }
 

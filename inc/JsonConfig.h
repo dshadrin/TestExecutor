@@ -25,6 +25,7 @@ struct SValueType
 
 typedef boost::optional<SValueView> OValueView;
 typedef boost::optional<Json::Value&> OJsonValue;
+typedef boost::optional<const Json::Value&> OCJsonValue;
 
 enum : uint32_t
 {
@@ -53,12 +54,12 @@ public:
     ~CJsonConfig();
 
     void InitConfig();
-    std::string GetGeometry();
-    Json::Value& GetSettings() { return m_jMain; }
-    void WriteJsonConfig();
-    void SaveGeometry( const std::string& value );
-    VectorValues GetProperties(const QString& path);
-    bool IsNodeExists( const QString& path );
+    void WriteJsonConfig() const;
+    const Json::Value& GetSettings() const { return m_jMain; }
+    QString GetGeometry() const;
+    void SaveGeometry( const QString& value );
+    bool IsNodeExists( const QString& path ) const;
+    VectorValues GetProperties(const QString& path) const;
     bool SaveProperties( const QString& path, const VectorValues& props, bool isNew = false );
     bool SaveValue( const QString& path, const SValueView& value, bool isNew = false );
     void RemoveNode( const QString& path, const QString& nodeName );
@@ -77,21 +78,22 @@ public:
     static const VectorValues& GetUnitTemplateByFlags( uint32_t flag );
 
     // config backup/undo operations
-    void RemoveBackup();
-    void CreateBackup();
+    void RemoveBackup() const;
+    void CreateBackup() const;
     void RestoreFromBackup();
 
 private:
     static const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>>::const_iterator FindUnitDefinition( uint32_t flag );
-    OJsonValue GetValue( const QString& path );
+    OJsonValue GetValue( const QString& path ) const;
     // recursive find by list
-    OJsonValue FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end );
+    OJsonValue FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end ) const;
+    Json::Value& GetSettings() { return m_jMain; }
 
 private:
     std::string m_jsonConfigPath;
     std::string m_localeString;
     Json::Value m_jMain;
-    Json::Value m_jBackup;
+    mutable Json::Value m_jBackup;
     static const std::tuple<std::string, uint32_t> s_rootConfigNode;
     static const std::vector<std::tuple<std::string, uint32_t>> s_vMainConfObjects;
     static const std::vector<std::tuple<std::string, ETypeValue, uint32_t>> s_vCurrentSessionConfObjects;

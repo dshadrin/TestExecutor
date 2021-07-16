@@ -100,12 +100,12 @@ void TestExecutor::closeEvent( QCloseEvent* event )
 
 void TestExecutor::writeSettings()
 {
-    m_config->SaveGeometry( saveGeometry().toBase64().toStdString() );
+    m_config->SaveGeometry( saveGeometry().toBase64() );
 }
 
 void TestExecutor::readSettings()
 {
-    const QByteArray geometry = QByteArray::fromBase64( QByteArray::fromStdString( m_config->GetGeometry() ) );
+    const QByteArray geometry = QByteArray::fromBase64( m_config->GetGeometry().toUtf8() );
     if ( geometry.isEmpty() )
     {
         const QRect availableGeometry = screen()->availableGeometry();

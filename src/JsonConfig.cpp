@@ -12,35 +12,39 @@ IMPLEMENT_MODULE_TAG( CJsonConfig, "CONF" );
 /*
 {
     "CurrentSession": {
-        "Session": {
-            "name": "ISWC test",
-            "type": "LINK",
-            "value": "Sessions.Iswc-session"
-        },
-        "Monitors": {
-            "Links": [
-                {
-                    "name": "Left camera monitor",
-                    "type": "LINK",
-                    "value": "Monitors.RtosDefault"
-                },
-                {
-                    "name": "Right camera monitor",
-                    "type": "LINK",
-                    "value": "Monitors.RtosRight"
-                }
-            ]
-        },
-        "Logger": {
-            "name": "Default logger",
-            "type": "LINK",
-            "value": "Loggers.Default-oscar"
-        },
-        "Connection": {
-            "name": "Local",
-            "type": "LINK",
-            "value": "Connections.Local"
-        }
+        "Session": [
+            {
+                "name": "ISWC test",
+                "type": "LINK",
+                "value": "Sessions.Iswc-session"
+            }
+        ],
+        "Monitors": [
+            {
+                "name": "Left camera monitor",
+                "type": "LINK",
+                "value": "Monitors.RtosDefault"
+            },
+            {
+                "name": "Right camera monitor",
+                "type": "LINK",
+                "value": "Monitors.RtosRight"
+            }
+        ],
+        "Logger": [
+            {
+                "name": "Default logger",
+                "type": "LINK",
+                "value": "Loggers.Default-oscar"
+            }
+        ],
+        "Connection": [
+            {
+                "name": "Local",
+                "type": "LINK",
+                "value": "Connections.Local"
+            }
+        ],
     },
     "Sessions" : {
         "Iswc-session": [
@@ -145,10 +149,10 @@ const std::vector<std::tuple<std::string, uint32_t>> CJsonConfig::s_vMainConfObj
 
 const std::vector<std::tuple<std::string, ETypeValue, uint32_t>> CJsonConfig::s_vCurrentSessionConfObjects
 {
-    {"Selected Session",    ETypeValue::object_value, JO_APPEND | JO_SESSIONS | JO_LINKS   },
-    {"Selected Monitors",   ETypeValue::arraj_value,  JO_APPEND | JO_MONITORS | JO_LINKS   },
-    {"Selected Logger",     ETypeValue::object_value, JO_APPEND | JO_LOGGERS | JO_LINKS    },
-    {"Selected Connection", ETypeValue::object_value, JO_APPEND | JO_CONNECTIONS | JO_LINKS}
+    {"Selected Session",    ETypeValue::arraj_value, JO_APPEND | JO_SESSIONS | JO_LINKS   },
+    {"Selected Monitors",   ETypeValue::arraj_value, JO_APPEND | JO_MONITORS | JO_LINKS   },
+    {"Selected Logger",     ETypeValue::arraj_value, JO_APPEND | JO_LOGGERS | JO_LINKS    },
+    {"Selected Connection", ETypeValue::arraj_value, JO_APPEND | JO_CONNECTIONS | JO_LINKS}
 };
 
 const VectorValues g_loggerTemplate
@@ -298,7 +302,7 @@ void CJsonConfig::InitConfig()
     WriteJsonConfig();
 }
 
-void CJsonConfig::WriteJsonConfig()
+void CJsonConfig::WriteJsonConfig() const
 {
     std::ofstream ofs( m_jsonConfigPath );
     if (ofs.good())
@@ -308,13 +312,13 @@ void CJsonConfig::WriteJsonConfig()
     }
 }
 
-void CJsonConfig::SaveGeometry( const std::string& value )
+void CJsonConfig::SaveGeometry( const QString& value )
 {
-    GetSettings()[KEY_GEOMETRY] = value;
+    GetSettings()[KEY_GEOMETRY] = value.toStdString();
     WriteJsonConfig();
 }
 
-std::string CJsonConfig::GetGeometry()
+QString CJsonConfig::GetGeometry() const
 {
     if (GetSettings()[KEY_GEOMETRY].isNull())
     {
@@ -323,7 +327,7 @@ std::string CJsonConfig::GetGeometry()
     return GetSettings()[KEY_GEOMETRY].asCString();
 }
 
-VectorValues CJsonConfig::GetProperties( const QString& path )
+VectorValues CJsonConfig::GetProperties( const QString& path ) const
 {
     VectorValues propsSet;
     OJsonValue v = GetValue( path );
@@ -345,7 +349,7 @@ VectorValues CJsonConfig::GetProperties( const QString& path )
                 {
                 case ETypeValue::arraj_value:
                 case ETypeValue::object_value:
-                    vv.value = Json::FastWriter().write( item ).c_str();
+                    vv.value = QString( Json::FastWriter().write( value ).c_str() ).trimmed();
                     break;
                 case ETypeValue::null:
                     vv.value = "";
@@ -381,7 +385,7 @@ VectorValues CJsonConfig::GetProperties( const QString& path )
     return propsSet;
 }
 
-bool CJsonConfig::IsNodeExists( const QString& path )
+bool CJsonConfig::IsNodeExists( const QString& path ) const
 {
     OJsonValue ov = GetValue( path );
     return ov.has_value();
@@ -528,13 +532,13 @@ void CJsonConfig::RenameKeyName( const QString& path, const QString& oldKey, con
     }
 }
 
-void CJsonConfig::RemoveBackup()
+void CJsonConfig::RemoveBackup() const
 {
     m_jBackup.clear();
     WriteJsonConfig();
 }
 
-void CJsonConfig::CreateBackup()
+void CJsonConfig::CreateBackup() const
 {
     m_jBackup = m_jMain;
     WriteJsonConfig();
@@ -543,18 +547,19 @@ void CJsonConfig::CreateBackup()
 void CJsonConfig::RestoreFromBackup()
 {
     m_jMain = m_jBackup;
-    WriteJsonConfig();
+//    WriteJsonConfig(); // torn on for debug goal
     InitConfig();
     m_jBackup.clear();
 }
 
-OJsonValue CJsonConfig::GetValue( const QString& path )
+OJsonValue CJsonConfig::GetValue( const QString& path ) const
 {
     QList<QStringView> parsedPath = util::SplitString( path, u'.' );
-    return FindValue( GetSettings(), parsedPath.cbegin(), parsedPath.cend() );
+    OJsonValue root { const_cast<Json::Value&>(GetSettings()) };
+    return FindValue( root, parsedPath.cbegin(), parsedPath.cend() );
 }
 
-OJsonValue CJsonConfig::FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end )
+OJsonValue CJsonConfig::FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end ) const
 {
     if (prev && it != end)
     {
