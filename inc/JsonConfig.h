@@ -53,13 +53,12 @@ public:
     CJsonConfig(QObject* parent = Q_NULLPTR);
     ~CJsonConfig();
 
-    void InitConfig();
-    void WriteJsonConfig() const;
     const Json::Value& GetSettings() const { return m_jMain; }
     QString GetGeometry() const;
-    void SaveGeometry( const QString& value );
     bool IsNodeExists( const QString& path ) const;
-    VectorValues GetProperties(const QString& path) const;
+    VectorValues GetProperties( const QString& path ) const;
+
+    void SaveGeometry( const QString& value );
     bool SaveProperties( const QString& path, const VectorValues& props, bool isNew = false );
     bool SaveValue( const QString& path, const SValueView& value, bool isNew = false );
     void RemoveNode( const QString& path, const QString& nodeName );
@@ -83,11 +82,13 @@ public:
     void RestoreFromBackup();
 
 private:
-    static const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>>::const_iterator FindUnitDefinition( uint32_t flag );
+    void InitConfig();
+    void WriteJsonConfig() const;
     OJsonValue GetValue( const QString& path ) const;
-    // recursive find by list
-    OJsonValue FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end ) const;
+    OJsonValue FindValue( OJsonValue prev, QList<QStringView>::const_iterator it, QList<QStringView>::const_iterator end ) const; // recursive find by list
     Json::Value& GetSettings() { return m_jMain; }
+
+    static const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>>::const_iterator FindUnitDefinition( uint32_t flag );
 
 private:
     std::string m_jsonConfigPath;
