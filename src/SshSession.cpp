@@ -2,13 +2,13 @@
 
 
 //////////////////////////////////////////////////////////////////////////
-trds::mutex CSession::s_mtx;
+trd::mutex CSession::s_mtx;
 uint32_t CSession::s_counter = 0;
 
 //////////////////////////////////////////////////////////////////////////
 CSession::CSession( QObject* parent /*= nullptr */ ) : QObject(parent)
 {
-    trds::unique_lock<trds::mutex> lock( s_mtx );
+    trd::unique_lock<trd::mutex> lock( s_mtx );
 #ifdef WIN32
     if (s_counter == 0)
     {
@@ -25,7 +25,7 @@ CSession::CSession( QObject* parent /*= nullptr */ ) : QObject(parent)
 
 CSession::~CSession() noexcept
 {
-    trds::unique_lock<trds::mutex> lock( s_mtx );
+    trd::unique_lock<trd::mutex> lock( s_mtx );
     if (s_counter == 1)
     {
 #ifdef WIN32

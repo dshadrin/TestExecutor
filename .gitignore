@@ -9,3 +9,4 @@ dist/
 cmake-build-debug/
 cmake-build-release/
 .vs/
+CMakeLists.txt.user

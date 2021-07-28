@@ -22,6 +22,7 @@ private Q_SLOTS:
     void findFolder();
     void changedType(int index);
     void checkValue( const QString& text );
+    void selectColor();
 
 public:
     Ui::VarEditDialog uiVarEdit;

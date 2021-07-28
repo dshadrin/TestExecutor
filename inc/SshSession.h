@@ -24,6 +24,6 @@ private:
     void DecRef() noexcept;
 
 private:
-    static trds::mutex s_mtx;
+    static trd::mutex s_mtx;
     static uint32_t s_counter;
 };

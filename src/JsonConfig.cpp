@@ -140,19 +140,19 @@ const std::tuple<std::string, uint32_t> CJsonConfig::s_rootConfigNode
 
 const std::vector<std::tuple<std::string, uint32_t>> CJsonConfig::s_vMainConfObjects
 {
-    {"CurrentSession",          JO_CONST  | JO_CURRENT_SESSION},
-    {"Defined Sessions",        JO_APPEND | JO_SESSIONS       },
-    {"Defined Monitors",        JO_APPEND | JO_MONITORS       },
-    {"Defined Loggers",         JO_APPEND | JO_LOGGERS        },
-    {"Defined Connections",     JO_APPEND | JO_CONNECTIONS    }
+    {KEY_CURRENT_SESSION,         JO_CONST  | JO_CURRENT_SESSION},
+    {KEY_DEFINED_SESSIONS,        JO_APPEND | JO_SESSIONS       },
+    {KEY_DEFINED_MONITORS,        JO_APPEND | JO_MONITORS       },
+    {KEY_DEFINED_LOGGERS,         JO_APPEND | JO_LOGGERS        },
+    {KEY_DEFINED_CONNECTIONS,     JO_APPEND | JO_CONNECTIONS    }
 };
 
 const std::vector<std::tuple<std::string, ETypeValue, uint32_t>> CJsonConfig::s_vCurrentSessionConfObjects
 {
-    {"Selected Session",    ETypeValue::arraj_value, JO_APPEND | JO_SESSIONS | JO_LINKS   },
-    {"Selected Monitors",   ETypeValue::arraj_value, JO_APPEND | JO_MONITORS | JO_LINKS   },
-    {"Selected Logger",     ETypeValue::arraj_value, JO_APPEND | JO_LOGGERS | JO_LINKS    },
-    {"Selected Connection", ETypeValue::arraj_value, JO_APPEND | JO_CONNECTIONS | JO_LINKS}
+    {KEY_SELECTED_SESSION,    ETypeValue::arraj_value, JO_APPEND | JO_SESSIONS    | JO_LINKS   },
+    {KEY_SELECTED_MONITORS,   ETypeValue::arraj_value, JO_APPEND | JO_MONITORS    | JO_LINKS   },
+    {KEY_SELECTED_LOGGER,     ETypeValue::arraj_value, JO_APPEND | JO_LOGGERS     | JO_LINKS   },
+    {KEY_SELECTED_CONNECTION, ETypeValue::arraj_value, JO_APPEND | JO_CONNECTIONS | JO_LINKS}
 };
 
 const VectorValues g_loggerTemplate
@@ -257,11 +257,12 @@ void CJsonConfig::InitConfig()
                 ifs.read( jStr.data(), jFileSize );
                 ifs.close();
 
-                Json::Reader reader;
+                std::unique_ptr<Json::CharReader> reader(Json::CharReaderBuilder().newCharReader());
+                Json::String err;
 
-                if (!reader.parse( jStr, m_jMain ))
+                if (reader && !reader->parse( jStr.data(), jStr.data() + jFileSize, &m_jMain, &err ))
                 {
-                    QMessageBox::critical( Q_NULLPTR, QString( "ERROR!" ), QString( "Config parsing failed" ) );
+                    QMessageBox::critical( Q_NULLPTR, QString( "ERROR! Config parsing failed" ), QString(err.c_str()) );
                 }
             }
         }
@@ -307,7 +308,9 @@ void CJsonConfig::WriteJsonConfig() const
     std::ofstream ofs( m_jsonConfigPath );
     if (ofs.good())
     {
-        Json::StyledStreamWriter( "  " ).write( ofs, GetSettings() );
+        std::unique_ptr<Json::StreamWriter> writer(Json::StreamWriterBuilder().newStreamWriter());
+        writer->write(GetSettings(), &ofs);
+//        Json::StyledStreamWriter( "  " ).write( ofs, GetSettings() );
         ofs.close();
     }
 }
@@ -442,16 +445,22 @@ bool CJsonConfig::SaveProperties( const QString& path, const VectorValues& props
             jObj[KEY_PROP_VALUE] = sVal.toDouble();
             break;
         case ETypeValue::integer_number:
-            jObj[KEY_PROP_VALUE] = sVal.toLongLong();
+            jObj[KEY_PROP_VALUE] = sVal.toInt();
             break;
         case ETypeValue::unsigned_number:
-            jObj[KEY_PROP_VALUE] = sVal.toULongLong();
+            jObj[KEY_PROP_VALUE] = sVal.toUInt();
             break;
         case ETypeValue::arraj_value:
         case ETypeValue::object_value:
         {
+            std::unique_ptr<Json::CharReader> reader(Json::CharReaderBuilder().newCharReader());
+            Json::String err;
             Json::Value v;
-            Json::Reader().parse( sVal.toStdString(), v );
+
+            if (reader && !reader->parse( sVal.toStdString().data(), sVal.toStdString().data() + sVal.length(), &v, &err ))
+            {
+                QMessageBox::critical( Q_NULLPTR, QString( "ERROR! Json parsing failed" ), QString(err.c_str()) );
+            }
             jObj[KEY_PROP_VALUE] = v;
         }
             break;

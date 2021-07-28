@@ -74,11 +74,11 @@ namespace rgx = boost;
 #include <mutex>
 #include <condition_variable>
 namespace trd = std;
-namespace trds = std;
+//namespace trds = std;
 #else
 #include <boost/thread.hpp>
 namespace trd = boost;
-namespace trds = boost::thread;
+//namespace trds = boost::thread;
 #endif
 
 #ifdef HAVE_STD_CHRONO

@@ -14,6 +14,17 @@
 #define KEY_PROP_VALUE "Value"
 #define KEY_PROP_TYPE "Type"
 
+#define KEY_CURRENT_SESSION      "CurrentSession"
+#define KEY_DEFINED_SESSIONS     "Defined Sessions"
+#define KEY_DEFINED_MONITORS     "Defined Monitors"
+#define KEY_DEFINED_LOGGERS      "Defined Loggers"
+#define KEY_DEFINED_CONNECTIONS  "Defined Connections"
+#define KEY_SELECTED_SESSION     "Session"
+#define KEY_SELECTED_MONITORS    "Monitors"
+#define KEY_SELECTED_LOGGER      "Logger"
+#define KEY_SELECTED_CONNECTION  "Connection"
+
+
 class CJsonConfigDialog;
 
 struct SValueType

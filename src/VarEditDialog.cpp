@@ -1,5 +1,6 @@
 #include "VarEditDialog.h"
 #include "JsonConfig.h"
+#include <QColorDialog>
 
 //////////////////////////////////////////////////////////////////////////
 CVarEditor::CVarEditor( const QString& name, QWidget* parent) :
@@ -26,6 +27,7 @@ CVarEditor::CVarEditor( const QString& name, QWidget* parent) :
     QObject::connect( uiVarEdit.pushButtonFolders, &QPushButton::clicked, this, &CVarEditor::findFolder );
     QObject::connect( uiVarEdit.comboBoxTypeJson, &QComboBox::currentIndexChanged, this, &CVarEditor::changedType );
     QObject::connect( uiVarEdit.lineEditValue, &QLineEdit::textChanged, this, &CVarEditor::checkValue );
+    QObject::connect( uiVarEdit.pushButtonColor, &QPushButton::clicked, this, &CVarEditor::selectColor );
 }
 
 
@@ -121,5 +123,16 @@ void CVarEditor::checkValue( const QString& text )
         uiVarEdit.lineEditValue->setStyleSheet( QString::fromUtf8( "background-color: rgb( 255, 161, 158 );" ) );
         uiVarEdit.buttonBox->button( QDialogButtonBox::Ok )->setEnabled( false );
     }
+}
+
+void CVarEditor::selectColor()
+{
+    // select color
+    QColor color = QColorDialog::getColor(QColor{}, this, tr("Select color"), QColorDialog::ShowAlphaChannel);
+    int red = color.red();
+    int green = color.green();
+    int blue = color.blue();
+    QString text = QString::asprintf("rgb( %d, %d, %d )", red, green, blue);
+    uiVarEdit.lineEditValue->setText(text);
 }
 
