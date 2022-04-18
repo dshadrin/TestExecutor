@@ -514,7 +514,22 @@ void CJsonConfig::RemoveNode( const QString& path, const QString& nodeName )
         OJsonValue jVal = GetValue( path );
         if (jVal.has_value())
         {
-            jVal->removeMember( nodeName.toStdString() );
+            if (jVal->isObject())
+            {
+                jVal->removeMember( nodeName.toStdString() );
+            }
+            else if (jVal->isArray())
+            {
+                for (int i = 0; i < jVal->size(); ++i)
+                {
+                    Json::Value jArrayMember = (*jVal)[i];
+                    if (jArrayMember.isObject() && jArrayMember["Name"] == nodeName.toStdString())
+                    {
+                        jVal->removeIndex( i, &jArrayMember );
+                        break;
+                    }
+                }
+            }
         }
     }
 }

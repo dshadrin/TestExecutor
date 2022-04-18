@@ -545,13 +545,29 @@ void CJsonConfigDialog::addNewPropertiesSet()
                     }
                 }
 
-                QTreeWidgetItem* newItem = new QTreeWidgetItem( GetCurrentTreeNode(), QStringList { text, QString().asprintf( "%04X", flags & ~JO_ACCESS_MASK ) }, (int)ETypeValue::link );
-                newItem->setData( TREE_VALUE_COLUMN, Qt::UserRole, data );
-                GetCurrentTreeNode()->addChild( newItem );
-                SetDirty( true );
-                SValueView vv { text, data, "LINK" };
-                QString path = GetTreePath( GetCurrentTreeNode() );
-                m_pConfig->SaveValue( path, vv, true );
+                int childCount = GetCurrentTreeNode()->childCount();
+                bool isExists = false;
+                for (int i = 0; i < childCount && !isExists; ++i)
+                {
+                    if (GetCurrentTreeNode()->child( i )->text( TREE_VALUE_COLUMN ) == text)
+                    {
+                        QMessageBox::warning( this, tr( "Configuration editor" ),
+                                              "Item '" + text + "' does selected before",
+                                              QMessageBox::Ok );
+                        isExists = true;
+                    }
+                }
+
+                if (!isExists)
+                {
+                    QTreeWidgetItem* newItem = new QTreeWidgetItem( GetCurrentTreeNode(), QStringList{ text, QString().asprintf( "%04X", flags & ~JO_ACCESS_MASK ) }, (int)ETypeValue::link );
+                    newItem->setData( TREE_VALUE_COLUMN, Qt::UserRole, data );
+                    GetCurrentTreeNode()->addChild( newItem );
+                    SetDirty( true );
+                    SValueView vv{ text, data, "LINK" };
+                    QString path = GetTreePath( GetCurrentTreeNode() );
+                    m_pConfig->SaveValue( path, vv, true );
+                }
             }
 
         }
