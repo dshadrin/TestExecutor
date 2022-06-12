@@ -17,7 +17,7 @@ TestExecutor::TestExecutor(QWidget *parent) :
     m_console(nullptr)
 {
     ui.setupUi(this);
-
+/*
     // run logger
     try
     {
@@ -101,6 +101,7 @@ TestExecutor::TestExecutor(QWidget *parent) :
     QObject::connect( ui.actionOptions, SIGNAL( triggered() ), this, SLOT( OptionsDialog() ) );
 
     emit Run( "-ln" );
+*/
 }
 
 
