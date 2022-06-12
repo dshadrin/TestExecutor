@@ -9,10 +9,11 @@
 #include <QtWidgets>
 
 IMPLEMENT_MODULE_TAG( TestExecutor, "EXEC" );
+extern std::string g_jsonConfigName;
 
 TestExecutor::TestExecutor(QWidget *parent) :
     QMainWindow( parent ),
-    m_config(new CAppConfig(/*this*/)),
+    m_config( g_jsonConfigName ),
     m_thread( std::bind( &TestExecutor::ThreadIO, this ) ),
     m_console(nullptr)
 {
@@ -94,14 +95,14 @@ TestExecutor::TestExecutor(QWidget *parent) :
 //             ui.tabWidget->addTab( monitor, QString::fromStdString( it.second.get<std::string>( "name", it.first ) ) );
 //         }
 //     }
-
+*/
     // other settings
     readSettings();
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     QObject::connect( ui.actionOptions, SIGNAL( triggered() ), this, SLOT( OptionsDialog() ) );
 
-    emit Run( "-ln" );
-*/
+//    emit Run( "-ln" );
+
 }
 
 
@@ -121,12 +122,12 @@ void TestExecutor::closeEvent( QCloseEvent* event )
 
 void TestExecutor::writeSettings()
 {
-    m_config->SaveGeometry( saveGeometry().toBase64() );
+    m_config.SaveGeometry( saveGeometry().toBase64() );
 }
 
 void TestExecutor::readSettings()
 {
-    const QByteArray geometry = QByteArray::fromBase64( m_config->GetGeometry() );
+    const QByteArray geometry = QByteArray::fromBase64( m_config.GetGeometry() );
     if ( geometry.isEmpty() )
     {
         const QRect availableGeometry = screen()->availableGeometry();
@@ -148,7 +149,7 @@ void TestExecutor::ThreadIO()
 
 void TestExecutor::OptionsDialog()
 {
-    QScopedPointer<CAppConfigDialog> dlg( new CAppConfigDialog( m_config ) );
+    QScopedPointer<CAppConfigDialog> dlg( new CAppConfigDialog( &m_config ) );
     if ( dlg )
     {
         QDialog::DialogCode code = (QDialog::DialogCode)dlg->exec();

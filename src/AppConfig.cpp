@@ -105,9 +105,60 @@ IMPLEMENT_MODULE_TAG( CAppConfig, "CONF" );
 //};
 
 //////////////////////////////////////////////////////////////////////////
-CAppConfig::CAppConfig()
+// constants
+//////////////////////////////////////////////////////////////////////////
+namespace
 {
+const std::string sActivity = "Activity";
+const std::string sComponents = "Components";
+const std::string sCurrentSet = "CurrentSet";
+const std::string sApplication = "Application";
+const std::string sConnestion = "Connection";
+const std::string sSession = "Session";
+const std::string sMonitors = "Application";
+const std::string sLogger = "Logger";
+const std::string sConnestionsArray = "Connection definitions";
+const std::string sSessionsArray = "Session definitions";
+const std::string sMonitorsArray = "Application definitions";
+const std::string sLoggersArray = "Logger definitions";
 
+const QVector<SNodeProperty> listHighNodes
+{
+    {QString::fromStdString( sActivity ), 1, ETypeValue::object_value},
+    {QString::fromStdString( sComponents ), 1, ETypeValue::object_value}
+};
+
+const QVector<SNodeProperty> listActivityNodes
+{
+    {QString::fromStdString( sCurrentSet ), 1, ETypeValue::object_value},
+    {QString::fromStdString( sApplication ), 1, ETypeValue::object_value}
+};
+
+const QVector<SNodeProperty> listComponents
+{
+    {QString::fromStdString( sConnestion ), 1, ETypeValue::object_value},
+    {QString::fromStdString( sSession ), 1, ETypeValue::object_value},
+    {QString::fromStdString( sMonitors ), -1, ETypeValue::object_value},
+    {QString::fromStdString( sLogger ), 1, ETypeValue::object_value}
+};
+
+const QVector<SNodeProperty> listComponentDefinitions
+{
+    {QString::fromStdString( sConnestionsArray ), -1, ETypeValue::arraj_value},
+    {QString::fromStdString( sSessionsArray ), -1, ETypeValue::arraj_value},
+    {QString::fromStdString( sMonitorsArray ), -1, ETypeValue::arraj_value},
+    {QString::fromStdString( sLoggersArray ), -1, ETypeValue::arraj_value}
+};
+
+const std::string gsGeometryPath( sActivity + "." + sApplication + "." + "Geometry" );
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+CAppConfig::CAppConfig( const std::string& congName ) :
+    CJsonConfig(congName)
+{
+    CheckRequiredNodes();
 }
 
 CAppConfig::~CAppConfig()
@@ -117,9 +168,43 @@ CAppConfig::~CAppConfig()
 
 void CAppConfig::SaveGeometry( const QByteArray& geometry )
 {
+    const std::string value = geometry.toStdString();
+    SetValue<std::string>( gsGeometryPath, value );
 }
 
 QByteArray CAppConfig::GetGeometry() const
 {
-    return QByteArray();
+    std::string value = GetValue<std::string>( gsGeometryPath );
+    return QByteArray::fromStdString( value );
 }
+
+void CAppConfig::CheckRequiredNodes()
+{
+    // high level
+    for (auto& n : listHighNodes)
+    {
+        auto p = FindJsonValue( n.name.toStdString() );
+        SetValue<Json::Value>( gsGeometryPath, {} );
+    }
+
+    // activity
+    for (auto& n : listActivityNodes)
+    {
+        auto p = FindJsonValue( sActivity + "." + n.name.toStdString());
+    }
+
+    // activity current set components
+    for (auto& n : listComponents)
+    {
+        auto p = FindJsonValue( sActivity + "." + sCurrentSet + "." + n.name.toStdString() );
+    }
+
+    // components
+    for (auto& n : listComponentDefinitions)
+    {
+        auto p = FindJsonValue( sComponents + "." + n.name.toStdString() );
+    }
+
+    Flush();
+}
+

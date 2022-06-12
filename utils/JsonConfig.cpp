@@ -1,4 +1,9 @@
+#include "StdInc.h"
 #include "JsonConfig.h"
+#include <algorithm>
+#include <fstream>
+#include <boost/algorithm/string.hpp>
+
 
 //////////////////////////////////////////////////////////////////////////
 // Application config structure (example)
@@ -101,13 +106,97 @@ const size_t TI_LINK_OBJ_FLAG = 2;
 //    {"LINK",        Json::ValueType::stringValue,  ETypeValue::link}
 //};
 
-//////////////////////////////////////////////////////////////////////////
-CJsonConfig::CJsonConfig()
+namespace
 {
+const Json::Value nullValue;
+}
 
+//////////////////////////////////////////////////////////////////////////
+CJsonConfig::CJsonConfig( const std::string& congName ) :
+    m_fileName( congName )
+{
+    Init();
 }
 
 CJsonConfig::~CJsonConfig()
 {
 
+}
+
+std::vector<std::string> CJsonConfig::SplitPath( const std::string& path )
+{
+    std::string p = boost::algorithm::trim_copy( path );
+    std::vector<std::string> v;
+    boost::algorithm::split( v, p, boost::algorithm::is_any_of( "." ), boost::algorithm::token_compress_on );
+    // trim every name
+    for (auto& s : v)
+    {
+        boost::algorithm::trim( s );
+    }
+    // remove empty
+    std::vector<std::string>::iterator it = std::remove( v.begin(), v.end(), "" );
+    if (it != v.end())
+    {
+        v.erase( it, v.end() );
+    }
+    return std::move(v);
+}
+
+std::vector<std::string> CJsonConfig::SplitPathWithCheckEmpty( const std::string& path )
+{
+    std::vector<std::string> v = SplitPath( path );
+    if (v.size() == 0)
+    {
+        BOOST_THROW_EXCEPTION( std::logic_error( "Wrong json path" ) );
+    }
+    return std::move( v );
+}
+
+void CJsonConfig::Init()
+{
+    if (fs::exists( m_fileName ))
+    {
+        Json::Reader reader;
+        std::ifstream cfgfile( m_fileName );
+        cfgfile >> m_storage;
+    }
+}
+
+void CJsonConfig::Flush()
+{
+    std::ofstream file_id( m_fileName, std::fstream::trunc );
+
+    Json::StyledWriter styledWriter;
+    file_id << styledWriter.write( m_storage );
+
+    file_id.close();
+}
+
+Json::Value* CJsonConfig::FindJsonValue( const std::string& path )
+{
+    std::vector<std::string> p = SplitPathWithCheckEmpty( path );
+    Json::Value* jpRet = &m_storage;
+    for (size_t i = 0; i < p.size(); ++i)
+    {
+        jpRet = &(*jpRet)[p[i]];
+    }
+    return jpRet;
+}
+
+const Json::Value* CJsonConfig::FindJsonValue( const std::string& path ) const
+{
+    std::vector<std::string> p = SplitPathWithCheckEmpty( path );
+    const Json::Value* jpRet = &m_storage;
+    for (size_t i = 0; i < p.size(); ++i)
+    {
+        if (jpRet->isMember( p[i] ))
+        {
+            jpRet = &(*jpRet)[p[i]];
+        }
+        else
+        {
+            return &nullValue;
+        }
+    }
+    return jpRet;
 }

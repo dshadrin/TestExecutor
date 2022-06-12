@@ -14,7 +14,7 @@ public:
     TestExecutor(QWidget *parent = Q_NULLPTR);
     ~TestExecutor();
 
-    CAppConfig* GetConfig() { return m_config; }
+    CAppConfig GetConfig() { return m_config; }
 
 protected:
     void closeEvent( QCloseEvent* event ) override;
@@ -33,7 +33,7 @@ Q_SIGNALS:
 
 private:
     Ui::TestExecutorClass ui;
-    CAppConfig* m_config;
+    CAppConfig m_config;
     boost::asio::io_context m_ioCtx;
     trd::thread m_thread;
     Console* m_console;
