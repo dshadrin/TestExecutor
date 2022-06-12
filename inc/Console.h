@@ -3,12 +3,14 @@
 
 #include <QtGui>
 #include <QPlainTextEdit>
+#include "JsonConfig.h"
+#include "ExternalProcess.h"
 
 class Console : public QPlainTextEdit
 {
     Q_OBJECT
 public:
-    explicit Console(QWidget *parent = nullptr);
+    explicit Console( VectorValues params, QWidget *parent = nullptr);
     void output(QString);
     void scrollDown();
 protected:
@@ -16,12 +18,9 @@ protected:
     void mousePressEvent(QMouseEvent *);
     void mouseDoubleClickEvent(QMouseEvent *);
     void contextMenuEvent(QContextMenuEvent *);
-private:
-    QString prompt;
-    bool isLocked;
-    QStringList *history;
-    int historyPos;
+    void RunProcess();
 
+private:
     void onEnter();
     void insertPrompt(bool insertNewBlock = true);
     void historyAdd(QString);
@@ -29,10 +28,20 @@ private:
     void historyForward();
 
 public Q_SLOTS:
+    void OnOutput( QString str );
     void RunCommand( const std::string& );
 
 Q_SIGNALS:
     void onCommand(QString);
+
+private:
+    QString prompt;
+    QStringList* history;
+    VectorValues m_params;
+    CExternalProcess m_process;
+    int historyPos;
+    bool isLocked;
+    DECLARE_MODULE_TAG;
 };
 
 #endif // CONSOLE_H

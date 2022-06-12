@@ -161,7 +161,7 @@ void CJsonConfigDialog::FillTreeNode( const Json::Value& jValue, QTreeWidgetItem
 
                 if (uiFlags & JO_LINKS)
                 {
-                    VectorValues vv = m_pConfig->GetProperties( GetTreePath( parent ) + "." + itemName );
+                    VectorValues vv = m_pConfig->GetProperties( GetTreePath( parent ) + "." + itemName ).GetValues();
                     if (!vv.empty())
                     {
                         for (const auto& v : vv)
@@ -213,7 +213,7 @@ void CJsonConfigDialog::FillTableProperties()
     QString path = linkPath ? GetCurrentTreeNode()->data( TREE_VALUE_COLUMN, Qt::UserRole ).toString() : GetTreePath( GetCurrentTreeNode() );
     if (!path.isEmpty())
     {
-        VectorValues props = m_pConfig->GetProperties( path );
+        VectorValues props = m_pConfig->GetProperties( path ).GetValues();
         FillTableProperties( props );
         if (linkPath)
         {

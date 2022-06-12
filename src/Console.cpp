@@ -4,8 +4,12 @@
 //#include <QStringDecoder>
 //#include <QStringEncoder>
 
-Console::Console(QWidget *parent) :
-	QPlainTextEdit(parent)
+IMPLEMENT_MODULE_TAG( Console, "ECON" );
+
+Console::Console( VectorValues params, QWidget *parent) :
+	QPlainTextEdit(parent),
+    m_params(params),
+    m_process( this )
 {
     prompt = "#> ";
 
@@ -18,6 +22,9 @@ Console::Console(QWidget *parent) :
     historyPos = 0;
     insertPrompt(false);
     isLocked = false;
+
+    QObject::connect( &m_process, &CExternalProcess::OnString, this, &Console::OnOutput );
+    RunProcess();
 }
 
 void Console::keyPressEvent(QKeyEvent *event)
@@ -50,10 +57,11 @@ void Console::contextMenuEvent(QContextMenuEvent *){}
 
 void Console::onEnter()
 {
+    /*
     if(textCursor().positionInBlock() == prompt.length())
     {
-	insertPrompt();
-	return;
+        insertPrompt();
+        return;
     }
     QString cmd = textCursor().block().text().mid(prompt.length());
     isLocked = true;
@@ -73,6 +81,7 @@ void Console::onEnter()
 
     QString str = QString::fromLocal8Bit( process.readAllStandardOutput() );
     output( str );
+    */
 }
 
 void Console::output(QString s)
@@ -83,7 +92,7 @@ void Console::output(QString s)
     format.setFont( QFont( "Lucida Console", 8 ) );
     textCursor().setBlockCharFormat(format);
     textCursor().insertText(s);
-    insertPrompt();
+//    insertPrompt();
     isLocked = false;
 }
 
@@ -139,24 +148,38 @@ void Console::historyForward()
     historyPos++;
 }
 
-void Console::RunCommand( const std::string& rCmd)
+void Console::RunProcess()
 {
-    QString cmd = QString::fromStdString( rCmd );
-    output( cmd );
-    isLocked = true;
-    emit onCommand( cmd );
-
-    QProcess process;
-#ifdef WIN32
-    process.start( "cmd", QStringList() << "/C" << cmd );
-#else
-    process.start( cmd );
-#endif
-    if (!process.waitForStarted() || !process.waitForFinished())
+    std::string envStr;
+    for (auto& p : m_params)
     {
-        return;
+        if (p.name == "environment")
+        {
+            envStr = p.value.toStdString();
+            break;
+        }
     }
+    m_process.Run( envStr );
+}
 
-    QString str = QString::fromLocal8Bit( process.readAllStandardOutput() );
+void Console::RunCommand( const std::string& rCmd )
+{
+    std::string exeStr;
+    for (auto& p : m_params)
+    {
+        if (p.name == "execution-file")
+        {
+            exeStr = p.value.toStdString();
+            break;
+        }
+    }
+    exeStr += " " + rCmd;
+    LOG_INFO << "Run command: " << exeStr;
+    m_process.PutCommand( exeStr );
+}
+
+void Console::OnOutput( QString str )
+{
     output( str );
 }
+

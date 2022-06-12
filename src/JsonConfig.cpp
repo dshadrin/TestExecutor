@@ -330,7 +330,7 @@ QString CJsonConfig::GetGeometry() const
     return GetSettings()[KEY_GEOMETRY].asCString();
 }
 
-VectorValues CJsonConfig::GetProperties( const QString& path ) const
+CValueViewAdapter CJsonConfig::GetProperties( const QString& path ) const
 {
     VectorValues propsSet;
     OJsonValue v = GetValue( path );
@@ -385,7 +385,7 @@ VectorValues CJsonConfig::GetProperties( const QString& path ) const
             propsSet.push_back( vv );
         }
     }
-    return propsSet;
+    return std::move( propsSet );
 }
 
 bool CJsonConfig::IsNodeExists( const QString& path ) const

@@ -1,12 +1,12 @@
 #pragma once
 #include <QPlainTextEdit>
-#include <boost/property_tree/ptree.hpp>
+#include "JsonConfig.h"
 
 class CLogger : public QPlainTextEdit
 {
     Q_OBJECT
 public:
-    explicit CLogger( const boost::property_tree::ptree& pt, QWidget *parent = 0);
+    explicit CLogger( const CValueViewAdapter& props, QWidget *parent = 0);
     ~CLogger();
 
 protected:

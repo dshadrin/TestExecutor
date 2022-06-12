@@ -54,6 +54,80 @@ enum : uint32_t
 };
 
 typedef std::vector<SValueView> VectorValues;
+//////////////////////////////////////////////////////////////////////////
+class CValueViewAdapter
+{
+public:
+    CValueViewAdapter( VectorValues&& vVal ) : m_values( vVal )
+    { }
+
+    template<class _TypeValue>
+    _TypeValue get( const QString& name, _TypeValue defaultValue = {} ) const;
+
+    template<>
+    QString get<QString>( const QString& name, QString defaultValue ) const
+
+    {
+        SValueView val = find( name );
+        return (val.name.isEmpty() || val.name.isNull()) ? defaultValue : val.value;
+    }
+
+    template<>
+    std::string get<std::string>( const QString& name, std::string defaultValue ) const
+    {
+        return get<QString>( name, QString::fromStdString( defaultValue ) ).toStdString();
+    }
+
+    template<>
+    int get<int>( const QString& name, int defaultValue ) const
+    {
+        SValueView val = find( name );
+        return (val.name.isEmpty() || val.name.isNull()) ? defaultValue : val.value.toInt();
+    }
+
+    template<>
+    unsigned int get<unsigned int>( const QString& name, unsigned int defaultValue ) const
+    {
+        SValueView val = find( name );
+        return (val.name.isEmpty() || val.name.isNull()) ? defaultValue : val.value.toUInt();
+    }
+
+    template<>
+    double get<double>( const QString& name, double defaultValue ) const
+    {
+        SValueView val = find( name );
+        return (val.name.isEmpty() || val.name.isNull()) ? defaultValue : val.value.toDouble();
+    }
+
+    int size() const { return (int)m_values.size(); }
+    VectorValues GetValues() const { return m_values; }
+    QString GetName( int idx )
+    {
+        QString retName;
+        if (idx < size())
+        {
+            retName = m_values[idx].name;
+        }
+        return retName;
+    }
+
+private:
+    SValueView find( const QString& name ) const
+    {
+        auto it = std::find_if( std::cbegin( m_values ), std::cend( m_values ), [&name]( const SValueView& view ) -> bool
+                                {
+                                    return name == view.name;
+                                } );
+        if (it != std::cend( m_values ))
+        {
+            return *it;
+        }
+        return SValueView{};
+    }
+
+private:
+    VectorValues m_values;
+};
 
 //////////////////////////////////////////////////////////////////////////
 class CJsonConfig : public QObject
@@ -67,7 +141,7 @@ public:
     const Json::Value& GetSettings() const { return m_jMain; }
     QString GetGeometry() const;
     bool IsNodeExists( const QString& path ) const;
-    VectorValues GetProperties( const QString& path ) const;
+    CValueViewAdapter GetProperties( const QString& path ) const;
 
     void SaveGeometry( const QString& value );
     bool SaveProperties( const QString& path, const VectorValues& props, bool isNew = false );

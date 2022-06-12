@@ -1,6 +1,7 @@
 INCLUDE(CheckIncludeFileCXX)
 if(NOT UNIX)
-check_include_file_cxx("filesystem" HAVE_STD_FILESYSTEM)
+# use boost filesystem because it required for boost::process
+#check_include_file_cxx("filesystem" HAVE_STD_FILESYSTEM)
 endif()
 check_include_file_cxx("cstdint" HAVE_STD_INT)
 check_include_file_cxx("thread" HAVE_STD_THREAD)

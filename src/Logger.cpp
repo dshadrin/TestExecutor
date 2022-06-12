@@ -2,20 +2,20 @@
 #include "Common.h"
 #include "logclient/LogClient.h"
 #include <QScrollBar>
+#include <boost/property_tree/ptree.hpp>
 
-CLogger::CLogger( const boost::property_tree::ptree& pt, QWidget *parent ) :
+CLogger::CLogger( const CValueViewAdapter& props, QWidget *parent ) :
 	QPlainTextEdit(parent)
 {
     QPalette p = palette();
-    p.setColor( QPalette::Base, util::ColorFromString( pt.get<std::string>( "bg-color", "black" ) ) );
-    p.setColor(QPalette::Text, util::ColorFromString( pt.get<std::string>( "text-color", "green" ) ) );
-    setPalette(p);
+    p.setColor( QPalette::Base, util::ColorFromString( props.get<std::string>( "bg-color" ) ) );
+    p.setColor( QPalette::Text, util::ColorFromString( props.get<std::string>( "text-color" ) ) );
+    setPalette( p );
     setLineWrapMode( QPlainTextEdit::WidgetWidth );
 
-    m_charFormat.setForeground( util::ColorFromString( pt.get<std::string>( "text-color", "green" ) ) );
-    m_charFormat.setFont( QFont( QString::fromStdString( pt.get<std::string>( "font-name", "Courier New" ) ), pt.get<int>( "font-weight", 12 ) ) );
-
-    QObject::connect( CLogClient::Get( pt ), &CLogClient::PrintLog, this, &CLogger::printData );
+    m_charFormat.setForeground( util::ColorFromString( props.get<std::string>( "text-color" ) ) );
+    m_charFormat.setFont( QFont( props.get<QString>( "font-name" ), props.get<int>( "font-weight" ) ) );
+    QObject::connect( CLogClient::Get(), &CLogClient::PrintLog, this, &CLogger::printData );
 }
 
 CLogger::~CLogger()

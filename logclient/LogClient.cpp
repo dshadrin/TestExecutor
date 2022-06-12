@@ -4,6 +4,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 #include <ctime>
 #include <iostream>
+#include <QDebug>
 
 #ifndef WIN32
 #include <sys/time.h>
@@ -62,7 +63,7 @@ CLogClient::CLogClient(const boost::property_tree::ptree& pt) :
 
 CLogClient::~CLogClient()
 {
-
+    Stop();
 }
 
 CLogClient* CLogClient::Get( const boost::property_tree::ptree& pt )
@@ -142,12 +143,14 @@ bool CLogClient::Connect()
     if (ec.value() != 0)
     {
         status = false;
-        std::cerr << "Logger connection error: " << ec.message() << std::endl;
+        qDebug() << "Logger connection error: " << QString::fromStdString(ec.message());
     }
     else
     {
-        std::cerr << "Logger client connected: " << m_socket.local_endpoint(ec).address().to_string() << ":" << m_socket.local_endpoint(ec).port() << " -> "
-                                                 << m_socket.remote_endpoint(ec).address().to_string() << ":" << m_socket.remote_endpoint(ec).port() << std::endl ;
+        qDebug() << "Logger client connected: " << QString::fromStdString( m_socket.local_endpoint(ec).address().to_string() )
+                 << ":" << m_socket.local_endpoint(ec).port() << " -> "
+                 << QString::fromStdString( m_socket.remote_endpoint(ec).address().to_string() ) << ":"
+                 << m_socket.remote_endpoint(ec).port();
     }
 
     return status;

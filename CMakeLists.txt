@@ -64,7 +64,8 @@ if(MSVC)
   message(STATUS "MSVC Version: " ${MSVC_VERSION})
   if(${MSVC_VERSION} STRGREATER "1914")
     set(USED_QT_PATH ${MSVC_QT_PATH})
-    set(ENV{CMAKE_PREFIX_PATH} "d:\\vcpkg\\installed\\x64-windows\\share")
+    #set(ENV{CMAKE_PREFIX_PATH} "d:\\vcpkg\\installed\\x64-windows\\share")
+    set(ENV{CMAKE_PREFIX_PATH} "${USED_QT_PATH}/lib/cmake")
   else()
     message(FATAL_ERROR "Unsupported MSVC version")
   endif()
@@ -109,6 +110,7 @@ set(SOURCES
   src/VarEditDialog.cpp
   src/Monitor.cpp
   src/Logger.cpp
+  src/ExternalProcess.cpp
 )
 
 set(HEADERS
@@ -123,6 +125,7 @@ set(HEADERS
   inc/VarEditDialog.h
   inc/Monitor.h
   inc/Logger.h
+  inc/ExternalProcess.h
   inc/json/json.h
   inc/json/json-forwards.h
 )

@@ -8,6 +8,8 @@
 #include <QSettings>
 #include <QtWidgets>
 
+IMPLEMENT_MODULE_TAG( TestExecutor, "EXEC" );
+
 TestExecutor::TestExecutor(QWidget *parent) :
     QMainWindow( parent ),
     m_config(new CJsonConfig(this)),
@@ -17,27 +19,51 @@ TestExecutor::TestExecutor(QWidget *parent) :
     ui.setupUi(this);
 
     // run logger
-//     auto& logger = m_config->GetSettings().get_child( "logger.client" );
-//     try
-//     {
-//         CLogClient::Get( logger );
-//         ui.tabWidget->addTab( new CLogger( logger, this ), QString::fromStdString( logger.get<std::string>( "name", "Logger" ) ) );
-//     }
-//     catch (const std::exception& e)
-//     {
-//         qDebug() << "Logger is not available: " << e.what();
-//         throw;
-//     }
+    try
+    {
+        CValueViewAdapter appLoggerLink = m_config->GetProperties( KEY_CURRENT_SESSION "." KEY_SELECTED_LOGGER );
+        if (appLoggerLink.size() == 1)
+        {
+            CValueViewAdapter appLoggerProps = m_config->GetProperties( appLoggerLink.get<QString>( "default logger" ) );
 
+            boost::property_tree::ptree pt;
+            pt.put<std::string>( "host", appLoggerProps.get<std::string>( "host" ) );
+            pt.put<std::string>( "name", appLoggerProps.get<std::string>( "name" ) );
+            pt.put<std::string>( "severity", appLoggerProps.get<std::string>( "severity" ) );
+            pt.put<int>( "port", appLoggerProps.get<int>( "port" ) );
+            pt.put<int>( "retry", appLoggerProps.get<int>( "retry" ) );
+            pt.put<int>( "max_message_size", appLoggerProps.get<int>( "max_message_size" ) );
+            pt.put<int>( "module_tag_size", appLoggerProps.get<int>( "module_tag_size" ) );
+
+            CLogClient::Get( pt ); // start logger
+            ui.tabWidget->addTab( new CLogger( appLoggerProps, this ), appLoggerProps.get<QString>( "name" ) );
+        }
+    }
+    catch (const std::exception& e)
+    {
+        qDebug() << "Logger is not available: " << e.what();
+        throw;
+    }
+
+    LOG_INFO << "Run console";
     // run console
-    m_console = new Console( this );
-    QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
-    ui.tabWidget->addTab( m_console, "Console" );
+    CValueViewAdapter appPropsLink = m_config->GetProperties( KEY_CURRENT_SESSION "." KEY_SELECTED_SESSION );
+    if (appPropsLink.size() == 1)
+    {
+        QString sessionName = appPropsLink.GetName( 0 );
+        if (!sessionName.isNull() && !sessionName.isEmpty())
+        {
+            CValueViewAdapter appProps = m_config->GetProperties( appPropsLink.get<QString>( sessionName ) );
+            m_console = new Console( appProps.GetValues(), this );
+            QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
+            ui.tabWidget->addTab( m_console, sessionName );
+        }
+    }
 
     // run qconsole
-    QConsole* qConsole = new QConsole( this, "#>" );
-//     QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
-    ui.tabWidget->addTab( qConsole, "QConsole" );
+    //QConsole* qConsole = new QConsole( this, "#>" );
+    //QObject::connect( this, &TestExecutor::Run, m_console, &Console::RunCommand );
+    //ui.tabWidget->addTab( qConsole, "QConsole" );
 
     // run monitors
 //     auto& monitors = m_config->GetSettings().get_child( "test-monitor" );
@@ -74,13 +100,7 @@ TestExecutor::TestExecutor(QWidget *parent) :
     QObject::connect(ui.actionAbout_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     QObject::connect( ui.actionOptions, SIGNAL( triggered() ), this, SLOT( OptionsDialog() ) );
 
-    // get tests list
-//     m_config->SetWorkDirectory();
-#ifdef WIN32
-    emit Run( "test_app -ln" );
-#else
-    emit Run( "./test_app -ln" );
-#endif
+    emit Run( "-ln" );
 }
 
 

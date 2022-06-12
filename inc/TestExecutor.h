@@ -37,4 +37,5 @@ private:
     boost::asio::io_context m_ioCtx;
     trd::thread m_thread;
     Console* m_console;
+    DECLARE_MODULE_TAG;
 };
