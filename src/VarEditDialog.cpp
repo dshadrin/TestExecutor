@@ -1,5 +1,5 @@
 #include "VarEditDialog.h"
-#include "JsonConfig.h"
+#include "AppConfig.h"
 #include <QColorDialog>
 
 //////////////////////////////////////////////////////////////////////////
@@ -12,16 +12,16 @@ CVarEditor::CVarEditor( const QString& name, QWidget* parent) :
     setAttribute( Qt::WA_CustomWhatsThis );
 
     int pos = 0;
-    QList<QString> types = CJsonConfig::GetValueTypesList();
-    for (auto& type : types)
-    {
-        uiVarEdit.comboBoxTypeJson->addItem( type );
-        if (type == "STRING")
-        {
-            uiVarEdit.comboBoxTypeJson->setCurrentIndex( pos );
-        }
-        ++pos;
-    }
+    //QList<QString> types = CAppConfig::GetValueTypesList();
+    //for (auto& type : types)
+    //{
+    //    uiVarEdit.comboBoxTypeJson->addItem( type );
+    //    if (type == "STRING")
+    //    {
+    //        uiVarEdit.comboBoxTypeJson->setCurrentIndex( pos );
+    //    }
+    //    ++pos;
+    //}
 
     QObject::connect( uiVarEdit.pushButtonFiles, &QPushButton::clicked, this, &CVarEditor::findFile );
     QObject::connect( uiVarEdit.pushButtonFolders, &QPushButton::clicked, this, &CVarEditor::findFolder );
@@ -105,7 +105,7 @@ void CVarEditor::findFolder()
 void CVarEditor::changedType( int index )
 {
     QString text = uiVarEdit.comboBoxTypeJson->currentText();
-    m_currentStrType = CJsonConfig::StringTypeToProjectType( text );
+    //m_currentStrType = CAppConfig::StringTypeToProjectType( text );
     QString value = uiVarEdit.lineEditValue->text();
     checkValue( value );
 }

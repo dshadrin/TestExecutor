@@ -8,13 +8,13 @@ CLogger::CLogger( const CValueViewAdapter& props, QWidget *parent ) :
 	QPlainTextEdit(parent)
 {
     QPalette p = palette();
-    p.setColor( QPalette::Base, util::ColorFromString( props.get<std::string>( "bg-color" ) ) );
-    p.setColor( QPalette::Text, util::ColorFromString( props.get<std::string>( "text-color" ) ) );
+    //p.setColor( QPalette::Base, util::ColorFromString( props.get<std::string>( "bg-color" ) ) );
+    //p.setColor( QPalette::Text, util::ColorFromString( props.get<std::string>( "text-color" ) ) );
     setPalette( p );
     setLineWrapMode( QPlainTextEdit::WidgetWidth );
 
-    m_charFormat.setForeground( util::ColorFromString( props.get<std::string>( "text-color" ) ) );
-    m_charFormat.setFont( QFont( props.get<QString>( "font-name" ), props.get<int>( "font-weight" ) ) );
+    //m_charFormat.setForeground( util::ColorFromString( props.get<std::string>( "text-color" ) ) );
+    //m_charFormat.setFont( QFont( props.get<QString>( "font-name" ), props.get<int>( "font-weight" ) ) );
     QObject::connect( CLogClient::Get(), &CLogClient::PrintLog, this, &CLogger::printData );
 }
 

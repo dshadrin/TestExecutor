@@ -93,8 +93,8 @@ set(SOURCES
   src/StdInc.cpp
   src/main.cpp
   src/${PROJECT_NAME}.cpp
-  src/JsonConfig.cpp
-  src/JsonConfigDialog.cpp
+  src/AppConfig.cpp
+  src/AppConfigDialog.cpp
   src/Console.cpp
   src/QConsole.cpp
   src/Common.cpp
@@ -108,8 +108,8 @@ set(HEADERS
   ${SSH_INC}
   ${APP_BUILD_PATH}/inc/StdInc.h
   inc/${PROJECT_NAME}.h
-  inc/JsonConfig.h
-  inc/JsonConfigDialog.h
+  inc/AppConfig.h
+  inc/AppConfigDialog.h
   inc/Console.h
   inc/QConsole.h
   inc/Common.h
@@ -137,7 +137,7 @@ set(RESOURCES
 
 set(FORMS
   ui/${PROJECT_NAME}.ui
-  ui/JsonConfig.ui
+  ui/AppConfig.ui
   ui/VarEdit.ui
 )
 

@@ -4,7 +4,7 @@
 #include "Monitor.h"
 #include "Logger.h"
 #include "logclient/LogClient.h"
-#include "JsonConfigDialog.h"
+#include "AppConfigDialog.h"
 #include <QSettings>
 #include <QtWidgets>
 
@@ -12,7 +12,7 @@ IMPLEMENT_MODULE_TAG( TestExecutor, "EXEC" );
 
 TestExecutor::TestExecutor(QWidget *parent) :
     QMainWindow( parent ),
-    m_config(new CJsonConfig(this)),
+    m_config(new CAppConfig(/*this*/)),
     m_thread( std::bind( &TestExecutor::ThreadIO, this ) ),
     m_console(nullptr)
 {
@@ -126,7 +126,7 @@ void TestExecutor::writeSettings()
 
 void TestExecutor::readSettings()
 {
-    const QByteArray geometry = QByteArray::fromBase64( m_config->GetGeometry().toUtf8() );
+    const QByteArray geometry = QByteArray::fromBase64( m_config->GetGeometry() );
     if ( geometry.isEmpty() )
     {
         const QRect availableGeometry = screen()->availableGeometry();
@@ -148,7 +148,7 @@ void TestExecutor::ThreadIO()
 
 void TestExecutor::OptionsDialog()
 {
-    QScopedPointer<CJsonConfigDialog> dlg( new CJsonConfigDialog( m_config ) );
+    QScopedPointer<CAppConfigDialog> dlg( new CAppConfigDialog( m_config ) );
     if ( dlg )
     {
         QDialog::DialogCode code = (QDialog::DialogCode)dlg->exec();

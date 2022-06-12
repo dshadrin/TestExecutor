@@ -6,9 +6,9 @@
 
 IMPLEMENT_MODULE_TAG( Console, "ECON" );
 
-Console::Console( VectorValues params, QWidget *parent) :
-	QPlainTextEdit(parent),
-    m_params(params),
+Console::Console( /*VectorValues params,*/ QWidget *parent) :
+    QPlainTextEdit(parent),
+//    m_params(params),
     m_process( this )
 {
     prompt = "#> ";
@@ -151,28 +151,28 @@ void Console::historyForward()
 void Console::RunProcess()
 {
     std::string envStr;
-    for (auto& p : m_params)
-    {
-        if (p.name == "environment")
-        {
-            envStr = p.value.toStdString();
-            break;
-        }
-    }
+    //for (auto& p : m_params)
+    //{
+    //    if (p.name == "environment")
+    //    {
+    //        envStr = p.value.toStdString();
+    //        break;
+    //    }
+    //}
     m_process.Run( envStr );
 }
 
 void Console::RunCommand( const std::string& rCmd )
 {
     std::string exeStr;
-    for (auto& p : m_params)
-    {
-        if (p.name == "execution-file")
-        {
-            exeStr = p.value.toStdString();
-            break;
-        }
-    }
+    //for (auto& p : m_params)
+    //{
+    //    if (p.name == "execution-file")
+    //    {
+    //        exeStr = p.value.toStdString();
+    //        break;
+    //    }
+    //}
     exeStr += " " + rCmd;
     LOG_INFO << "Run command: " << exeStr;
     m_process.PutCommand( exeStr );

@@ -3,14 +3,14 @@
 
 #include <QtGui>
 #include <QPlainTextEdit>
-#include "JsonConfig.h"
+#include "AppConfig.h"
 #include "ExternalProcess.h"
 
 class Console : public QPlainTextEdit
 {
     Q_OBJECT
 public:
-    explicit Console( VectorValues params, QWidget *parent = nullptr);
+    explicit Console( /*VectorValues params,*/ QWidget *parent = nullptr);
     void output(QString);
     void scrollDown();
 protected:
@@ -37,7 +37,7 @@ Q_SIGNALS:
 private:
     QString prompt;
     QStringList* history;
-    VectorValues m_params;
+//    VectorValues m_params;
     CExternalProcess m_process;
     int historyPos;
     bool isLocked;

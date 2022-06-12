@@ -1,6 +1,8 @@
 #pragma once
 #include <QPlainTextEdit>
-#include "JsonConfig.h"
+#include "AppConfig.h"
+
+class CValueViewAdapter;
 
 class CLogger : public QPlainTextEdit
 {

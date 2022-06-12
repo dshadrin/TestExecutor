@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>JsonConfigDialog</class>
- <widget class="QDialog" name="JsonConfigDialog">
+ <class>AppConfigDialog</class>
+ <widget class="QDialog" name="AppConfigDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -493,7 +493,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>JsonConfigDialog</receiver>
+   <receiver>AppConfigDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -509,7 +509,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>JsonConfigDialog</receiver>
+   <receiver>AppConfigDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -549,8 +549,8 @@
      <y>86</y>
     </hint>
     <hint type="destinationlabel">
-     <x>349</x>
-     <y>284</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>
