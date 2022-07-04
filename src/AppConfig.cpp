@@ -131,7 +131,7 @@ const QVector<SNodeProperty> listHighNodes
 const QVector<SNodeProperty> listActivityNodes
 {
     {QString::fromStdString( sCurrentSet ), 1, ETypeValue::object_value},
-    {QString::fromStdString( sApplication ), 1, ETypeValue::object_value}
+    {QString::fromStdString( sApplication ), 0, ETypeValue::object_value}
 };
 
 const QVector<SNodeProperty> listComponents
@@ -150,7 +150,48 @@ const QVector<SNodeProperty> listComponentDefinitions
     {QString::fromStdString( sLoggersArray ), -1, ETypeValue::arraj_value}
 };
 
+const QVector<SNodeProperty> listNodesEmpty;
 const std::string gsGeometryPath( sActivity + "." + sApplication + "." + "Geometry" );
+
+const SLoggerProperty defaultLogger
+{
+    "TestExecutor log",
+    "localhost",
+    2100,
+    5,
+    2048,
+    4,
+    "DEBUG",
+    "lightGray",
+    "darkBlue",
+    "Courier New",
+    10
+};
+
+const SMonitorProperty defaultMonitor
+{
+    "RTOS camera monitor",
+    "localhost",
+    2002,
+    "lightGray",
+    "darkBlue",
+    "darkGreen",
+    "Lucida Console",
+    9
+};
+
+const SSessionProperty defaultSession
+{
+    "Project name",
+    "test_app.exe",
+    "-ln",
+    "[]"
+};
+
+const SConnectionProperty defaultConnection
+{
+    "Local"
+};
 
 }
 
@@ -206,5 +247,22 @@ void CAppConfig::CheckRequiredNodes()
     }
 
     Flush();
+}
+
+const QVector<SNodeProperty>& CAppConfig::GetNodeProperties( const QString& parentName ) const
+{
+    if (parentName.isEmpty())
+        return listHighNodes;
+
+    else if (parentName == QString::fromStdString( sActivity ))
+        return listActivityNodes;
+
+    else if (parentName == QString::fromStdString( sCurrentSet ))
+        return listComponents;
+
+    else if (parentName == QString::fromStdString( sComponents ))
+        return listComponentDefinitions;
+
+    return listNodesEmpty;
 }
 

@@ -49,13 +49,59 @@ class CAppConfigDialog;
 //////////////////////////////////////////////////////////////////////////
 // types
 //////////////////////////////////////////////////////////////////////////
+
+// tree nodes property
 struct SNodeProperty
 {
-//    SNodeProperty(const QString& s, qint32 c, ETypeValue t) : name(s), maxCount(c), type(t) {}
     QString name;
     qint32 maxCount;
     ETypeValue type;
 };
+
+// Logger property
+struct SLoggerProperty
+{
+    std::string componentName;
+    std::string connectionHost;
+    uint16_t connectionPort;
+    uint16_t retryConnection;
+    uint16_t maxMessageSize;
+    uint16_t moduleTagSize;
+    std::string severity;
+    std::string bgColor;
+    std::string textColor;
+    std::string fontName;
+    uint16_t fontWeight;
+};
+
+// Logger property
+struct SMonitorProperty
+{
+    std::string componentName;
+    std::string connectionHost;
+    uint16_t connectionPort;
+    std::string bgColor;
+    std::string cmdTextColor;
+    std::string cameraTextColor;
+    std::string fontName;
+    uint16_t fontWeight;
+};
+
+// Logger property
+struct SSessionProperty
+{
+    std::string componentName;
+    std::string executionPath;
+    std::string cmdLine;
+    std::string environment;
+};
+
+// Logger property
+struct SConnectionProperty
+{
+    std::string componentName;
+};
+
 
 //////////////////////////////////////////////////////////////////////////
 class CAppConfig : public CJsonConfig
@@ -66,6 +112,8 @@ public:
 
     void SaveGeometry( const QByteArray& geometry );
     QByteArray GetGeometry() const;
+
+    const QVector<SNodeProperty>& GetNodeProperties( const QString& parentName = "") const;
 
 private:
     void CheckRequiredNodes();
