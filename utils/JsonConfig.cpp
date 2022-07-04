@@ -156,47 +156,65 @@ void CJsonConfig::Init()
 {
     if (fs::exists( m_fileName ))
     {
-        Json::Reader reader;
+        Json::CharReaderBuilder builder;
+        builder["collectComments"] = false;
+        std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
         std::ifstream cfgfile( m_fileName );
-        cfgfile >> m_storage;
+        Json::String errs;
+        bool ok = parseFromStream(builder, cfgfile, &m_storage, &errs);
+        cfgfile.close();
+        if (!ok)
+        {
+            BOOST_THROW_EXCEPTION(std::logic_error("Parse json error: " + errs));
+        }
     }
 }
 
 void CJsonConfig::Flush()
 {
-    std::ofstream file_id( m_fileName, std::fstream::trunc );
-
-    Json::StyledWriter styledWriter;
-    file_id << styledWriter.write( m_storage );
-
+    std::ofstream file_id( m_fileName, std::fstream::trunc);
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "  ";
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    writer->write( m_storage, &file_id );
     file_id.close();
 }
 
-Json::Value* CJsonConfig::FindJsonValue( const std::string& path )
+Json::Value& CJsonConfig::FindJsonValue( const std::string& path )
 {
     std::vector<std::string> p = SplitPathWithCheckEmpty( path );
-    Json::Value* jpRet = &m_storage;
-    for (size_t i = 0; i < p.size(); ++i)
-    {
-        jpRet = &(*jpRet)[p[i]];
-    }
-    return jpRet;
+    return ValueReference(m_storage, p, 0);
 }
 
-const Json::Value* CJsonConfig::FindJsonValue( const std::string& path ) const
+Json::Value& CJsonConfig::ValueReference(Json::Value& parent, const std::vector<std::string>& p, size_t idx)
 {
-    std::vector<std::string> p = SplitPathWithCheckEmpty( path );
-    const Json::Value* jpRet = &m_storage;
-    for (size_t i = 0; i < p.size(); ++i)
+    if (idx < p.size())
     {
-        if (jpRet->isMember( p[i] ))
+        Json::Value& val = parent[p[idx++]];
+        return (idx < p.size() ? ValueReference(val, p, idx) : val);
+    }
+    BOOST_THROW_EXCEPTION(std::out_of_range("Out of range: " + std::to_string(idx)));
+}
+
+const Json::Value& CJsonConfig::ValueReference(const Json::Value& parent, const std::vector<std::string>& p, size_t idx) const
+{
+    if (idx < p.size())
+    {
+        if (parent.isMember(p[idx]))
         {
-            jpRet = &(*jpRet)[p[i]];
+            const Json::Value& val = parent[p[idx++]];
+            return (idx < p.size() ? ValueReference(val, p, idx) : val);
         }
         else
         {
-            return &nullValue;
+            BOOST_THROW_EXCEPTION(std::logic_error("Member does not found: " + p[idx]));
         }
     }
-    return jpRet;
+    BOOST_THROW_EXCEPTION(std::out_of_range("Out of range: " + std::to_string(idx)));
+}
+
+const Json::Value& CJsonConfig::FindJsonValue( const std::string& path ) const
+{
+    std::vector<std::string> p = SplitPathWithCheckEmpty( path );
+    return ValueReference(m_storage, p, 0);
 }

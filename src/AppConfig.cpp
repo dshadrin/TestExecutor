@@ -225,7 +225,6 @@ void CAppConfig::CheckRequiredNodes()
     for (auto& n : listHighNodes)
     {
         auto p = FindJsonValue( n.name.toStdString() );
-        SetValue<Json::Value>( gsGeometryPath, {} );
     }
 
     // activity

@@ -21,23 +21,33 @@ protected:
     template<class _JType>
     void SetValue( const std::string& path, const _JType& value )
     {
-        Json::Value* jpVal = FindJsonValue( path );
-        (*jpVal) = value;
+        Json::Value& jpVal = FindJsonValue( path );
+        jpVal = value;
         Flush();
     }
 
     template<class _JType>
     _JType GetValue( const std::string& path ) const
     {
-        const Json::Value* jpVal = const_cast<const Json::Value*>(FindJsonValue( path ));
-        return jpVal->as<_JType>();
+        try
+        {
+            const Json::Value& jpVal = FindJsonValue(path);
+            return jpVal.as<_JType>();
+        }
+        catch (std::exception& e)
+        {
+            // do nothing
+        }
+        return _JType{};
     }
 
-    Json::Value* FindJsonValue( const std::string& path );
-    const Json::Value* FindJsonValue( const std::string& path ) const;
+    Json::Value& FindJsonValue( const std::string& path );
+    const Json::Value& FindJsonValue( const std::string& path ) const;
 
 private:
     void Init();
+    Json::Value& ValueReference(Json::Value& parent, const std::vector<std::string>& p, size_t idx);
+    const Json::Value& ValueReference(const Json::Value& parent, const std::vector<std::string>& p, size_t idx) const;
     static std::vector<std::string> SplitPath( const std::string& path );
     static std::vector<std::string> SplitPathWithCheckEmpty( const std::string& path );
 

@@ -17,15 +17,13 @@ include(config)
 ###
 if(MSVC)
   message(STATUS "Toolset: MSVC")
-  add_definitions(-DWINVER=0x0600)
-  add_definitions(-D_WIN32_WINNT=0x0600)
+  add_definitions(-D_WIN32_WINNT=0x0601)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:wchar_t /wd4996 /wd4503 /wd4251 /wd4180 /wd5105 /wd4068")
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 elseif(MINGW)
   message(STATUS "Toolset: gcc mingw")
-  add_definitions(-DWINVER=0x0600)
-  add_definitions(-D_WIN32_WINNT=0x0600)
+  add_definitions(-D_WIN32_WINNT=0x0601)
 elseif(UNIX)
   message(STATUS "Toolset: gcc unix")
 endif()
@@ -44,8 +42,7 @@ if(NOT HAVE_STD_THREAD)
   list(APPEND BOOST_LIB_LIST thread)
 endif()
 
-message(STATUS "Boost Version: ${PRJ_BOOST_VERSION}")
-message(STATUS "Boost_COMPILER: ${Boost_COMPILER}")
+message(STATUS "Boost Version: " ${PRJ_BOOST_VERSION})
 find_package(Boost ${PRJ_BOOST_VERSION} COMPONENTS ${BOOST_LIB_LIST} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 message(STATUS "Boost INCLUDE DIRS: ${Boost_INCLUDE_DIRS}")
@@ -117,8 +114,6 @@ set(HEADERS
   inc/Monitor.h
   inc/Logger.h
   inc/ExternalProcess.h
-  inc/json/json.h
-  inc/json/json-forwards.h
 )
 
 if(MSVC)
@@ -145,11 +140,6 @@ qt6_add_resources(RESOURCES_R ${RESOURCES})
 qt6_wrap_ui(FORM_H ${FORMS})
 
 include_directories(${APP_ROOT_PATH})
-
-if(NOT UNIX)
-add_subdirectory(libssh2)
-endif()
-
 
 add_subdirectory(oscar)
 add_subdirectory(utils)

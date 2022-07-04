@@ -22,14 +22,14 @@ public:
 
     void push(const value_type& value)
     {
-        std::unique_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         m_queue.push(value);
         m_cond.notify_all();
     }
 
     value_type pop()
     {
-        std::unique_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         while (m_queue.empty())
         {
             m_cond.wait(lock);
@@ -43,7 +43,7 @@ public:
     boost::optional<value_type> pop_try(uint64_t timeoutMs)
     {
         std::chrono::high_resolution_clock::time_point tpEnd = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(timeoutMs);
-        std::unique_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         while (m_queue.empty() &&
                tpEnd > std::chrono::high_resolution_clock::now())
         {
@@ -61,7 +61,7 @@ public:
 
     bool empty()
     {
-        std::lock_guard lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         return m_queue.empty();
     }
 
