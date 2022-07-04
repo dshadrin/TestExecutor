@@ -156,7 +156,7 @@ target_link_libraries(${PROJECT_NAME} ${PRJ_QT}::Core ${PRJ_QT}::Gui ${PRJ_QT}::
 target_include_directories(${PROJECT_NAME} PRIVATE ${APP_ROOT_PATH}/inc ${APP_BUILD_PATH}/inc)
 
 if(MINGW)
-  target_link_libraries(${PROJECT_NAME} logclient libssh2 "-static")
+  target_link_libraries(${PROJECT_NAME} logclient ssh2 "-static")
 elseif(MSVC)
   target_link_libraries(${PROJECT_NAME} oscar utils libssh2)
 elseif(UNIX)
