@@ -6,6 +6,7 @@
 #pragma once
 #include <QString>
 #include <QObject>
+#include <boost/describe.hpp>
 
 #ifdef WIN32
 const char LIST_PATH_SEPARATOR = ';';
@@ -14,19 +15,18 @@ const char LIST_PATH_SEPARATOR = ':';
 #endif
 
 //////////////////////////////////////////////////////////////////////////
-enum class ETypeValue
-{
-    null,
-    boolean_value,
-    integer_number,
-    unsigned_number,
-    float_number,
-    string_value,
-    hex_number,
-    arraj_value,    // json format array (check with json parser)
-    object_value,   // json format object (check with json parser)
-    link            // full path to linked object
-};
+BOOST_DEFINE_ENUM_CLASS(ETypeValue,
+    NullValue,
+    BooleanValue,
+    IntegerValue,
+    UnsignedValue,
+    FloatValue,
+    StringValue,
+    HexNumberString,    /** number as hex string */
+    ArrajValue,         /** json format array (check with json parser) */
+    ObjectValue,        /** json format object (check with json parser) */
+    LinkValue           /** full path to linked object */
+)
 
 struct SValueView
 {
@@ -43,4 +43,7 @@ namespace util
     Qt::GlobalColor ColorFromString( const std::string& color );
     bool CheckStringValue( const QString& text, ETypeValue type );
     QList<QStringView> SplitString( const QString& str, QChar ch );
+
+    ETypeValue TypeFromString(const QString& str);
+    QString TypeFromString(ETypeValue val);
 }

@@ -4,7 +4,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 CVarEditor::CVarEditor( const QString& name, QWidget* parent) :
-    m_currentStrType(ETypeValue::string_value)
+    m_currentStrType(ETypeValue::StringValue)
 {
     uiVarEdit.setupUi( this );
     setWindowTitle( name );

@@ -119,35 +119,35 @@ const std::string sMonitors = "Application";
 const std::string sLogger = "Logger";
 const std::string sConnestionsArray = "Connection definitions";
 const std::string sSessionsArray = "Session definitions";
-const std::string sMonitorsArray = "Application definitions";
+const std::string sMonitorsArray = "Console definitions";
 const std::string sLoggersArray = "Logger definitions";
 
 const QVector<SNodeProperty> listHighNodes
 {
-    {QString::fromStdString( sActivity ), 1, ETypeValue::object_value},
-    {QString::fromStdString( sComponents ), 1, ETypeValue::object_value}
+    {QString::fromStdString( sActivity ), 1, ETypeValue::ObjectValue},
+    {QString::fromStdString( sComponents ), 1, ETypeValue::ObjectValue}
 };
 
 const QVector<SNodeProperty> listActivityNodes
 {
-    {QString::fromStdString( sCurrentSet ), 1, ETypeValue::object_value},
-    {QString::fromStdString( sApplication ), 0, ETypeValue::object_value}
+    {QString::fromStdString( sCurrentSet ), 1, ETypeValue::ObjectValue},
+    {QString::fromStdString( sApplication ), 0, ETypeValue::ObjectValue}
 };
 
 const QVector<SNodeProperty> listComponents
 {
-    {QString::fromStdString( sConnestion ), 1, ETypeValue::object_value},
-    {QString::fromStdString( sSession ), 1, ETypeValue::object_value},
-    {QString::fromStdString( sMonitors ), -1, ETypeValue::object_value},
-    {QString::fromStdString( sLogger ), 1, ETypeValue::object_value}
+    {QString::fromStdString( sConnestion ), 1, ETypeValue::ObjectValue},
+    {QString::fromStdString( sSession ), 1, ETypeValue::ObjectValue},
+    {QString::fromStdString( sMonitors ), -1, ETypeValue::ObjectValue},
+    {QString::fromStdString( sLogger ), 1, ETypeValue::ObjectValue}
 };
 
 const QVector<SNodeProperty> listComponentDefinitions
 {
-    {QString::fromStdString( sConnestionsArray ), -1, ETypeValue::arraj_value},
-    {QString::fromStdString( sSessionsArray ), -1, ETypeValue::arraj_value},
-    {QString::fromStdString( sMonitorsArray ), -1, ETypeValue::arraj_value},
-    {QString::fromStdString( sLoggersArray ), -1, ETypeValue::arraj_value}
+    {QString::fromStdString( sConnestionsArray ), -1, ETypeValue::ArrajValue},
+    {QString::fromStdString( sSessionsArray ), -1, ETypeValue::ArrajValue},
+    {QString::fromStdString( sMonitorsArray ), -1, ETypeValue::ArrajValue},
+    {QString::fromStdString( sLoggersArray ), -1, ETypeValue::ArrajValue}
 };
 
 const QVector<SNodeProperty> listNodesEmpty;
@@ -248,7 +248,7 @@ void CAppConfig::CheckRequiredNodes()
     Flush();
 }
 
-const QVector<SNodeProperty>& CAppConfig::GetNodeProperties( const QString& parentName ) const
+const QVector<SNodeProperty>& CAppConfig::GetListNodeProperties( const QString& parentName ) const
 {
     if (parentName.isEmpty())
         return listHighNodes;
@@ -264,4 +264,3 @@ const QVector<SNodeProperty>& CAppConfig::GetNodeProperties( const QString& pare
 
     return listNodesEmpty;
 }
-

@@ -1,8 +1,8 @@
 #include "Common.h"
+#include "utils/JsonConfig.h"
 #include <QFileDialog>
 #include <QRegularExpression>
 #include <QList>
-#include <json/json.h>
 
 //////////////////////////////////////////////////////////////////////////
 namespace
@@ -62,8 +62,9 @@ bool IsTextInteger( const QString& text )
 bool IsTextJsonArray( const QString& text )
 {
     Json::Value value;
-    Json::Reader reader;
-    bool status = reader.parse( text.toStdString(), value );
+    std::istringstream iss(text.toStdString());
+    std::string errs;
+    bool status = CJsonConfig::ReadFromStream(iss, value, errs);
     if (status && !value.isArray())
     {
         status = false;
@@ -74,8 +75,9 @@ bool IsTextJsonArray( const QString& text )
 bool IsTextJsonObject( const QString& text )
 {
     Json::Value value;
-    Json::Reader reader;
-    bool status = reader.parse( text.toStdString(), value );
+    std::istringstream iss(text.toStdString());
+    std::string errs;
+    bool status = CJsonConfig::ReadFromStream(iss, value, errs);
     if (status && !value.isObject())
     {
         status = false;
@@ -139,31 +141,31 @@ bool util::CheckStringValue( const QString& text, ETypeValue type )
     bool status = true;
     switch (type)
     {
-    case ETypeValue::null:
+    case ETypeValue::NullValue:
         status = text.isNull();
         break;
-    case ETypeValue::boolean_value:
+    case ETypeValue::BooleanValue:
         status = (IsFalseTextValue(text) || IsTrueTextValue(text));
         break;
-    case ETypeValue::float_number:
+    case ETypeValue::FloatValue:
         status = IsTextFloatNumber( text );
         break;
-    case ETypeValue::hex_number:
+    case ETypeValue::HexNumberString:
         status = IsTextHexNumber( text );
         break;
-    case ETypeValue::integer_number:
+    case ETypeValue::IntegerValue:
         status = IsTextInteger( text );
         break;
-    case ETypeValue::unsigned_number:
+    case ETypeValue::UnsignedValue:
         status = IsTextUnsignedInteger( text );
         break;
-    case ETypeValue::arraj_value:
+    case ETypeValue::ArrajValue:
         status = IsTextJsonArray( text );
         break;
-    case ETypeValue::object_value:
+    case ETypeValue::ObjectValue:
         status = IsTextJsonObject( text );
         break;
-    case ETypeValue::string_value:      // always true
+    case ETypeValue::StringValue:      // always true
     default:;
     }
     return status;
@@ -177,4 +179,21 @@ QList<QStringView> util::SplitString( const QString& str, QChar ch )
         return tokens;
     }
     return QList<QStringView>{};
+}
+
+ETypeValue util::TypeFromString(const QString& str)
+{
+    ETypeValue val;
+    bool status = boost::describe::enum_from_string(str.toStdString().c_str(), val);
+    if (status)
+    {
+        return val;
+    }
+    BOOST_THROW_EXCEPTION(std::logic_error("Error convert to ETypeValue: " + str.toStdString()));
+}
+
+QString util::TypeFromString(ETypeValue val)
+{
+    std::string def = "(undefined " + std::to_string(static_cast<std::underlying_type_t<ETypeValue>>(val)) + ")";
+    return boost::describe::enum_to_string(val, def.c_str());
 }

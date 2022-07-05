@@ -154,14 +154,12 @@ std::vector<std::string> CJsonConfig::SplitPathWithCheckEmpty( const std::string
 
 void CJsonConfig::Init()
 {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (fs::exists( m_fileName ))
     {
-        Json::CharReaderBuilder builder;
-        builder["collectComments"] = false;
-        std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
         std::ifstream cfgfile( m_fileName );
         Json::String errs;
-        bool ok = parseFromStream(builder, cfgfile, &m_storage, &errs);
+        bool ok = ReadFromStream(cfgfile, m_storage, errs);
         cfgfile.close();
         if (!ok)
         {
@@ -170,24 +168,41 @@ void CJsonConfig::Init()
     }
 }
 
+bool CJsonConfig::ReadFromStream(std::istream& is, Json::Value& jValue, Json::String& errs)
+{
+    Json::CharReaderBuilder builder;
+    builder["collectComments"] = true;
+    std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    return parseFromStream(builder, is, &jValue, &errs);
+}
+
 void CJsonConfig::Flush()
 {
-    std::ofstream file_id( m_fileName, std::fstream::trunc);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+    std::ofstream ofs( m_fileName, std::fstream::trunc);
+    WriteToStream(ofs, m_storage);
+    ofs.close();
+}
+
+void CJsonConfig::WriteToStream(std::ostream& os, const Json::Value& jValue)
+{
     Json::StreamWriterBuilder builder;
     builder["indentation"] = "  ";
+    builder["commentStyle"] = "All";
     std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
-    writer->write( m_storage, &file_id );
-    file_id.close();
+    writer->write( jValue, &os );
 }
 
 Json::Value& CJsonConfig::FindJsonValue( const std::string& path )
 {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     std::vector<std::string> p = SplitPathWithCheckEmpty( path );
     return ValueReference(m_storage, p, 0);
 }
 
 Json::Value& CJsonConfig::ValueReference(Json::Value& parent, const std::vector<std::string>& p, size_t idx)
 {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (idx < p.size())
     {
         Json::Value& val = parent[p[idx++]];
@@ -198,6 +213,7 @@ Json::Value& CJsonConfig::ValueReference(Json::Value& parent, const std::vector<
 
 const Json::Value& CJsonConfig::ValueReference(const Json::Value& parent, const std::vector<std::string>& p, size_t idx) const
 {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (idx < p.size())
     {
         if (parent.isMember(p[idx]))
@@ -215,6 +231,34 @@ const Json::Value& CJsonConfig::ValueReference(const Json::Value& parent, const 
 
 const Json::Value& CJsonConfig::FindJsonValue( const std::string& path ) const
 {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     std::vector<std::string> p = SplitPathWithCheckEmpty( path );
     return ValueReference(m_storage, p, 0);
+}
+
+bool CJsonConfig::IsUndoAvailable() const
+{
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+    return !m_undo.empty();
+}
+
+void CJsonConfig::SaveCurrentPropertySet()
+{
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+    m_undo.push(m_storage);
+}
+
+void CJsonConfig::Undo()
+{
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+    m_storage = m_undo.top();
+    m_undo.pop();
+    Flush();
+}
+
+void CJsonConfig::ClearUndo()
+{
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+    std::stack<Json::Value> emptyStack;
+    m_undo.swap(emptyStack);
 }

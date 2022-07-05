@@ -14,7 +14,7 @@ public:
     TestExecutor(QWidget *parent = Q_NULLPTR);
     ~TestExecutor();
 
-    CAppConfig GetConfig() { return m_config; }
+    CAppConfig& GetConfig() { return m_config; }
 
 protected:
     void closeEvent( QCloseEvent* event ) override;
