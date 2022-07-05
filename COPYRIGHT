@@ -1,0 +1,9 @@
+Copyright (C) 2022 dshadrin@gmail.com
+All rights reserved.
+
+Third party libraries:
+----------------------
+libssh2 - https://www.libssh2.org/
+jsoncpp - https://github.com/open-source-parsers/jsoncpp
+boost - https://www.boost.org/
+Qt6 - https://www.qt.io/
