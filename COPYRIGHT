@@ -7,3 +7,5 @@ libssh2 - https://www.libssh2.org/
 jsoncpp - https://github.com/open-source-parsers/jsoncpp
 boost - https://www.boost.org/
 Qt6 - https://www.qt.io/
+fmt - https://github.com/fmtlib/fmt
+

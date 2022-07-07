@@ -9,9 +9,22 @@
 #include <QMessageBox>
 
 //////////////////////////////////////////////////////////////////////////
-// forward declaration
+// Config item masks
 //////////////////////////////////////////////////////////////////////////
-class CAppConfigDialog;
+enum ENodeMask : quint32
+{
+    JO_UNSPECIFIED = 0,
+    JO_CURRENT_SESSION = 0x0001,
+    JO_SESSIONS = 0x0002,
+    JO_MONITORS = 0x0003,
+    JO_LOGGERS = 0x0004,
+    JO_CONNECTIONS = 0x0005,
+    JO_MAIN_MASK = 0x00FF,
+    JO_LINKS = 0x0100,
+    JO_CONST = 0x1000,
+    JO_APPEND = 0x2000,
+    JO_ACCESS_MASK = 0xF000
+};
 
 //////////////////////////////////////////////////////////////////////////
 // description
@@ -57,9 +70,12 @@ struct SNodeProperty
     QString name;
     qint32 maxCount;
     ETypeValue type;
+    quint32 mask;
 };
 
-BOOST_DESCRIBE_STRUCT(SNodeProperty, (), (name, maxCount, type))
+BOOST_DESCRIBE_STRUCT(SNodeProperty, (), (name, maxCount, mask, type, mask))
+
+typedef QVector<SNodeProperty> ListNodesProperty;
 
 // Logger property
 struct SLoggerProperty
@@ -117,55 +133,54 @@ BOOST_DESCRIBE_STRUCT(SConnectionProperty, (), (componentName))
 class CAppConfig : public CJsonConfig
 {
 public:
-    CAppConfig(const std::string& congName);
+    CAppConfig(std::string_view congName);
     ~CAppConfig() override;
 
     void SaveGeometry( const QByteArray& geometry );
     QByteArray GetGeometry() const;
 
-    const QVector<SNodeProperty>& GetListNodeProperties( const QString& parentName = "") const;
+    const ListNodesProperty& GetListNodesProperty( const QString& parentName = "") const;
 
     template<class _PropsSet>
-    _PropsSet GetByPath(const QString& path) const
-    {
-        try
-        {
-            const Json::Value& jvCpp = FindJsonValue(path.toStdString());
-            if (!jvCpp.isNull())
-            {
-                std::ostringstream oss;
-                CJsonConfig::WriteToStream(oss, jvCpp);
-                return CJsonConfig::FromJsonString<_PropsSet>(oss.str());
-            }
-        }
-        catch(const std::exception&)
-        {
-            // path not exists
-            // do nothing
-        }
-        return _PropsSet{};
-    }
+    _PropsSet GetByPath(const QString& path) const;
 
     template<class _PropsSet>
-    void SetByPath(const QString& path, const _PropsSet& props)
-    {
-        Json::Value& jvCpp = FindJsonValue(path.toStdString());
-        std::istringstream iss(CJsonConfig::ToJsonString<_PropsSet>(props));
-        Json::Value jv;
-        Json::String err;
-        bool status = CJsonConfig::ReadFromStream(iss, jv, err);
-        if (status)
-        {
-            jvCpp = jv;
-            Flush();
-        }
-        else
-        {
-            QMessageBox::warning( Q_NULLPTR, QString( "Error store data in config" ), QString::fromStdString( err ) );
-        }
-    }
+    void SetByPath(const QString& path, const _PropsSet& props);
 
 private:
     void CheckRequiredNodes();
     DECLARE_MODULE_TAG;
 };
+
+
+template<class _PropsSet>
+inline _PropsSet CAppConfig::GetByPath(const QString& path) const
+{
+    top::optional<const Json::Value&> jvCppOp = FindJsonValue( path.toStdString() );
+    if (jvCppOp.has_value() && !jvCppOp.get().isNull())
+    {
+        std::ostringstream oss;
+        CJsonConfig::WriteToStream( oss, jvCppOp.get() );
+        return CJsonConfig::FromJsonString<_PropsSet>(oss.str());
+    }
+    return _PropsSet{};
+}
+
+template<class _PropsSet>
+inline void CAppConfig::SetByPath(const QString& path, const _PropsSet& props)
+{
+    Json::Value& jvCpp = FindJsonValue(path.toStdString());
+    std::istringstream iss(CJsonConfig::ToJsonString<_PropsSet>(props));
+    Json::Value jv;
+    Json::String err;
+    bool status = CJsonConfig::ReadFromStream(iss, jv, err);
+    if (status)
+    {
+        jvCpp = jv;
+        Flush();
+    }
+    else
+    {
+        QMessageBox::warning( Q_NULLPTR, QString( "Error store data in config" ), QString::fromStdString( err ) );
+    }
+}

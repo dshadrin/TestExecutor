@@ -35,7 +35,7 @@ private:
     Ui::TestExecutorClass ui;
     CAppConfig m_config;
     boost::asio::io_context m_ioCtx;
-    trd::thread m_thread;
+    tth::thread m_thread;
     Console* m_console;
     DECLARE_MODULE_TAG;
 };

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2019 Dmitriy Shadrin
+* Copyright (C) 2022 Dmitriy Shadrin
 * All rights reserved.
 */
 
@@ -28,6 +28,8 @@ BOOST_DEFINE_ENUM_CLASS(ETypeValue,
     LinkValue           /** full path to linked object */
 )
 
+Q_DECLARE_METATYPE(ETypeValue)
+
 struct SValueView
 {
     QString name;
@@ -38,12 +40,12 @@ struct SValueView
 //////////////////////////////////////////////////////////////////////////
 namespace util
 {
-    QString FindFile(const QString& path = "", const QString& title = QString("Find file"), const QString& filter = QString("All files(*)"));
-    QString FindFolder(const QString& path = "", const QString& title = QString("Select a Directory"));
-    Qt::GlobalColor ColorFromString( const std::string& color );
-    bool CheckStringValue( const QString& text, ETypeValue type );
-    QList<QStringView> SplitString( const QString& str, QChar ch );
+QString FindFile(const QString& path = "", const QString& title = QString("Find file"), const QString& filter = QString("All files(*)"));
+QString FindFolder(const QString& path = "", const QString& title = QString("Select a Directory"));
+Qt::GlobalColor ColorFromString( const std::string& color );
+bool CheckStringValue( const QString& text, ETypeValue type );
+QList<QStringView> SplitString( const QString& str, QChar ch );
 
-    ETypeValue TypeFromString(const QString& str);
-    QString TypeFromString(ETypeValue val);
+ETypeValue TypeFromString(const QString& str);
+QString TypeToString( ETypeValue val );
 }

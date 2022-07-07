@@ -36,5 +36,5 @@ private:
     std::unique_ptr <boost::process::child> m_process;
     boost::process::opstream m_out;
     boost::process::ipstream m_in;
-    std::unique_ptr<trd::thread> m_thread;
+    std::unique_ptr<tth::thread> m_thread;
 };

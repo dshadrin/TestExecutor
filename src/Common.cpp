@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "utils/JsonConfig.h"
+#include "utils/Exceptions.h"
 #include <QFileDialog>
 #include <QRegularExpression>
 #include <QList>
@@ -112,28 +113,40 @@ namespace util
     }
 }
 
+namespace Qt {
+    BOOST_DESCRIBE_ENUM(GlobalColor,
+        color0,
+        color1,
+        black,
+        white,
+        darkGray,
+        gray,
+        lightGray,
+        red,
+        green,
+        blue,
+        cyan,
+        magenta,
+        yellow,
+        darkRed,
+        darkGreen,
+        darkBlue,
+        darkCyan,
+        darkMagenta,
+        darkYellow,
+        transparent
+    )
+}
+
 Qt::GlobalColor util::ColorFromString( const std::string& color )
 {
-    if (color == "color1") return Qt::color1;
-    else if (color == "black") return Qt::black;
-    else if (color == "white") return Qt::white;
-    else if (color == "darkGray") return Qt::darkGray;
-    else if (color == "gray") return Qt::gray;
-    else if (color == "lightGray") return Qt::lightGray;
-    else if (color == "red") return Qt::red;
-    else if (color == "green") return Qt::green;
-    else if (color == "blue") return Qt::blue;
-    else if (color == "cyan") return Qt::cyan;
-    else if (color == "magenta") return Qt::magenta;
-    else if (color == "yellow") return Qt::yellow;
-    else if (color == "darkRed") return Qt::darkRed;
-    else if (color == "darkGreen") return Qt::darkGreen;
-    else if (color == "darkBlue") return Qt::darkBlue;
-    else if (color == "darkCyan") return Qt::darkCyan;
-    else if (color == "darkMagenta") return Qt::darkMagenta;
-    else if (color == "darkYellow") return Qt::darkYellow;
-    else if (color == "transparent") return Qt::transparent;
-    else return Qt::color0;
+    Qt::GlobalColor val;
+    bool status = boost::describe::enum_from_string<Qt::GlobalColor>(color.c_str(), val);
+    if (!status)
+    {
+        util::dex::ThrowException<std::logic_error>( fmt::format( FMT_STRING( "Error convert to Qt::GlobalColor: {:s}" ), color ) );
+    }
+    return val;
 }
 
 bool util::CheckStringValue( const QString& text, ETypeValue type )
@@ -185,14 +198,14 @@ ETypeValue util::TypeFromString(const QString& str)
 {
     ETypeValue val;
     bool status = boost::describe::enum_from_string(str.toStdString().c_str(), val);
-    if (status)
+    if (!status)
     {
-        return val;
+        util::dex::ThrowException<std::logic_error>( fmt::format( FMT_STRING( "Error convert {:s} to ETypeValue" ), str.toStdString() ) );
     }
-    BOOST_THROW_EXCEPTION(std::logic_error("Error convert to ETypeValue: " + str.toStdString()));
+    return val;
 }
 
-QString util::TypeFromString(ETypeValue val)
+QString util::TypeToString(ETypeValue val)
 {
     std::string def = "(undefined " + std::to_string(static_cast<std::underlying_type_t<ETypeValue>>(val)) + ")";
     return boost::describe::enum_to_string(val, def.c_str());

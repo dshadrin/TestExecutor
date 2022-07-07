@@ -149,7 +149,7 @@ void TestExecutor::ThreadIO()
 
 void TestExecutor::OptionsDialog()
 {
-    QScopedPointer<CAppConfigDialog> dlg( new CAppConfigDialog( &m_config ) );
+    QScopedPointer<CAppConfigDialog> dlg( new CAppConfigDialog( m_config ) );
     if ( dlg )
     {
         QDialog::DialogCode code = (QDialog::DialogCode)dlg->exec();

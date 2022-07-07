@@ -1,9 +1,9 @@
 #include "StdInc.h"
 #include "JsonConfig.h"
+#include "utils/Exceptions.h"
 #include <algorithm>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
-
 
 //////////////////////////////////////////////////////////////////////////
 // Application config structure (example)
@@ -112,7 +112,7 @@ const Json::Value nullValue;
 }
 
 //////////////////////////////////////////////////////////////////////////
-CJsonConfig::CJsonConfig( const std::string& congName ) :
+CJsonConfig::CJsonConfig( const std::string_view congName ) :
     m_fileName( congName )
 {
     Init();
@@ -123,9 +123,10 @@ CJsonConfig::~CJsonConfig()
 
 }
 
-std::vector<std::string> CJsonConfig::SplitPath( const std::string& path )
+std::vector<std::string> CJsonConfig::SplitPath( std::string_view path )
 {
-    std::string p = boost::algorithm::trim_copy( path );
+    std::string p { path };
+    boost::algorithm::trim( p );
     std::vector<std::string> v;
     boost::algorithm::split( v, p, boost::algorithm::is_any_of( "." ), boost::algorithm::token_compress_on );
     // trim every name
@@ -142,12 +143,12 @@ std::vector<std::string> CJsonConfig::SplitPath( const std::string& path )
     return std::move(v);
 }
 
-std::vector<std::string> CJsonConfig::SplitPathWithCheckEmpty( const std::string& path )
+std::vector<std::string> CJsonConfig::SplitPathWithCheckEmpty( std::string_view path )
 {
     std::vector<std::string> v = SplitPath( path );
     if (v.size() == 0)
     {
-        BOOST_THROW_EXCEPTION( std::logic_error( "Wrong json path" ) );
+        util::dex::ThrowException<std::logic_error>(fmt::format( FMT_STRING( "Wrong json path {:s}" ), path ) );
     }
     return std::move( v );
 }
@@ -163,7 +164,7 @@ void CJsonConfig::Init()
         cfgfile.close();
         if (!ok)
         {
-            BOOST_THROW_EXCEPTION(std::logic_error("Parse json error: " + errs));
+            util::dex::ThrowException<std::logic_error>(fmt::format( FMT_STRING( "Error parsing configure file {:s}: {:s}" ), m_fileName, errs ) );
         }
     }
 }
@@ -193,47 +194,47 @@ void CJsonConfig::WriteToStream(std::ostream& os, const Json::Value& jValue)
     writer->write( jValue, &os );
 }
 
-Json::Value& CJsonConfig::FindJsonValue( const std::string& path )
+Json::Value& CJsonConfig::FindJsonValue( std::string_view path )
 {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
     std::vector<std::string> p = SplitPathWithCheckEmpty( path );
     return ValueReference(m_storage, p, 0);
+}
+
+top::optional<const Json::Value&> CJsonConfig::FindJsonValue( std::string_view path ) const
+{
+    std::lock_guard<std::recursive_mutex> lock( m_mutex );
+    std::vector<std::string> p = SplitPathWithCheckEmpty( path );
+    return ValueReference( m_storage, p, 0 );
 }
 
 Json::Value& CJsonConfig::ValueReference(Json::Value& parent, const std::vector<std::string>& p, size_t idx)
 {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    if (idx < p.size())
+    if (idx >= p.size())
     {
-        Json::Value& val = parent[p[idx++]];
-        return (idx < p.size() ? ValueReference(val, p, idx) : val);
+        util::dex::ThrowException<std::out_of_range>(fmt::format( FMT_STRING( "Index out of range: {:d}" ), idx ) );
     }
-    BOOST_THROW_EXCEPTION(std::out_of_range("Out of range: " + std::to_string(idx)));
+    Json::Value& val = parent[p[idx++]]; // NOTE: increase idx
+    return (idx < p.size() ? ValueReference( val, p, idx ) : val);
 }
 
-const Json::Value& CJsonConfig::ValueReference(const Json::Value& parent, const std::vector<std::string>& p, size_t idx) const
+top::optional<const Json::Value&> CJsonConfig::ValueReference( const Json::Value& parent, const std::vector<std::string>& p, size_t idx ) const
 {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    if (idx < p.size())
+    if (idx >= p.size())
     {
-        if (parent.isMember(p[idx]))
-        {
-            const Json::Value& val = parent[p[idx++]];
-            return (idx < p.size() ? ValueReference(val, p, idx) : val);
-        }
-        else
-        {
-            BOOST_THROW_EXCEPTION(std::logic_error("Member does not found: " + p[idx]));
-        }
+        util::dex::ThrowException<std::out_of_range>(fmt::format( FMT_STRING( "Index out of range: {:d}" ), idx ) );
     }
-    BOOST_THROW_EXCEPTION(std::out_of_range("Out of range: " + std::to_string(idx)));
-}
+    
+    if (!parent.isMember( p[idx] ))
+    {
+        //util::dex::ThrowException<std::logic_error>( tefmt::format( FMT_STRING( "Node {:s} is not member" ), p[idx] ) );
+        return {};
+    }
 
-const Json::Value& CJsonConfig::FindJsonValue( const std::string& path ) const
-{
-    std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    std::vector<std::string> p = SplitPathWithCheckEmpty( path );
-    return ValueReference(m_storage, p, 0);
+    const Json::Value& val = parent[p[idx++]]; // NOTE: increase idx
+    return (idx < p.size() ? ValueReference(val, p, idx) : val);
 }
 
 bool CJsonConfig::IsUndoAvailable() const

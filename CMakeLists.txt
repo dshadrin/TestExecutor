@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
+set(PROJECT_NAME "TestExecutor")
+message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-include(project)
 project(${PROJECT_NAME} LANGUAGES CXX C)
 
 set(APP_BUILD_PATH "${CMAKE_CURRENT_BINARY_DIR}")
@@ -11,32 +12,28 @@ set(APP_SOURCE_PATH "${CMAKE_SOURCE_DIR}")
 message(STATUS "Source path: " ${APP_SOURCE_PATH})
 
 include(config)
+include(project)
 
 ###
 # Boost & platform configuration
 ###
-if(MSVC)
-  message(STATUS "Toolset: MSVC")
-#  add_definitions(-D_WIN32_WINNT=0x0601)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:wchar_t /wd4996 /wd4503 /wd4251 /wd4180 /wd5105 /wd4068")
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-elseif(MINGW)
-  message(STATUS "Toolset: gcc mingw")
-elseif(UNIX)
-  message(STATUS "Toolset: gcc unix")
-endif()
-
+message(STATUS "Use boost::system")
+message(STATUS "Use boost::date_time")
 list(APPEND BOOST_LIB_LIST system date_time)
+
+message(STATUS "Use boost::json")
 list(APPEND BOOST_LIB_LIST json)
+
 if(NOT HAVE_STD_FILESYSTEM)
   message(STATUS "Use boost::filesystem")
   list(APPEND BOOST_LIB_LIST filesystem)
 endif()
+
 if(NOT HAVE_STD_REGEX)
   message(STATUS "Use boost::regex")
   list(APPEND BOOST_LIB_LIST regex)
 endif()
+
 if(NOT HAVE_STD_THREAD)
   message(STATUS "Use boost::thread")
   list(APPEND BOOST_LIB_LIST thread)
@@ -48,6 +45,10 @@ include_directories(${Boost_INCLUDE_DIRS})
 message(STATUS "Boost INCLUDE DIRS: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost LIBRARIES: ${Boost_LIBRARIES}")
 
+if(NOT HAVE_STD_FORMAT)
+  find_package(fmt CONFIG REQUIRED)
+endif()
+
 ###
 # Qt configuration
 ###
@@ -56,15 +57,10 @@ if(WIN32)
     if(${MSVC_VERSION} STRGREATER "1914")
       set(USED_QT_PATH ${MSVC_QT_PATH})
       set(ENV{CMAKE_PREFIX_PATH} "${USED_QT_PATH}/lib/cmake")
+      message(STATUS "USED_QT_PATH: " ${USED_QT_PATH})
     else()
       message(FATAL_ERROR "Unsupported MSVC version")
     endif()
-  elseif(MINGW)
-#    set(USED_QT_PATH ${MINGW_QT_PATH})
-#    set(ENV{CMAKE_PREFIX_PATH} "${USED_QT_PATH}/lib/cmake")
-  elseif(UNIX)
-    set(USED_QT_PATH ${UNIX_QT_PATH})
-    set(ENV{CMAKE_PREFIX_PATH} "${USED_QT_PATH}/lib/cmake")
   endif()
   message(STATUS "CMAKE_PREFIX_PATH: " $ENV{CMAKE_PREFIX_PATH})
 endif()
@@ -161,6 +157,10 @@ elseif(MSVC)
   target_link_libraries(${PROJECT_NAME} oscar utils libssh2)
 elseif(UNIX)
   target_link_libraries(${PROJECT_NAME} logclient pthread ssh2) #  -lstdc++fs
+endif()
+
+if(NOT HAVE_STD_FORMAT)
+  target_link_libraries(${PROJECT_NAME} fmt::fmt-header-only)
 endif()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${DestinationDir})

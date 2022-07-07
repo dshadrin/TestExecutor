@@ -18,3 +18,7 @@ endif()
 if(STATIC_PROXY)
   target_compile_definitions(utils PUBLIC LOGGING_DIRECT)
 endif()
+
+if(NOT HAVE_STD_FORMAT)
+  target_link_libraries(utils PRIVATE fmt::fmt-header-only)
+endif()

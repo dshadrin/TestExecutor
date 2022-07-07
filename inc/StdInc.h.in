@@ -19,13 +19,14 @@
 #cmakedefine HAVE_STD_REGEX
 #cmakedefine HAVE_STD_THREAD
 #cmakedefine HAVE_STD_CHRONO
-
-#cmakedefine HAVE_ASPRINTF
+#cmakedefine HAVE_STD_FORMAT
+#cmakedefine HAVE_STD_OPTIONAL
 
 //////////////////////////////////////////////////////////////////////////
 
 #include <string>
 #include <memory>
+#include <exception>
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
@@ -39,11 +40,6 @@
 #else
 #include <boost/stdint.hpp>
 #endif
-
-#ifndef HAVE_ASPRINTF
-extern "C" int asprintf(char **strp, const char *fmt, ...);
-#endif
-std::string StringFormat( const char* fmt, ... );
 
 #ifdef HAVE_STD_FILESYSTEM
 #include <filesystem>
@@ -65,20 +61,36 @@ namespace rgx = boost;
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-namespace trd = std;
+namespace tth = std;
 //namespace trds = std;
 #else
 #include <boost/thread.hpp>
-namespace trd = boost;
+namespace tth = boost;
 //namespace trds = boost::thread;
 #endif
 
 #ifdef HAVE_STD_CHRONO
 #include <chrono>
-namespace chr = std;
+namespace tch = std;
 #else
 #include <boost/chrono.hpp>
-namespace chr = boost;
+namespace tch = boost;
+#endif
+
+#ifdef HAVE_STD_FORMAT
+#include <format>
+namespace fmt = std;
+#define FMT_STRING(str) (str)
+#else
+#include <fmt/format.h>
+#endif
+
+#ifdef HAVE_STD_OPTIONAL
+#include <optional>
+namespace top = std;
+#else
+#include <boost/optional.hpp>
+namespace top = boost;
 #endif
 
 #include <boost/algorithm/string.hpp>

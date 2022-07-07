@@ -47,7 +47,7 @@ std::string CExternalProcess::PrepareCommandLine( const std::string& exeLine, co
     std::string cmd;
     std::string exe = ba::trim_copy( exeLine );
     fs::path p( fs::absolute( exe ) );
-    if (boost::filesystem::exists( p ))
+    if (fs::exists( p ))
     {
         exe = p.string();
 
@@ -75,7 +75,7 @@ void CExternalProcess::PutCommand( const std::string& cmd )
 
 void CExternalProcess::Run( const std::string& envLine )
 {
-    m_thread.reset( new trd::thread( std::bind( &CExternalProcess::ThreadProcess, this, envLine ) ) );
+    m_thread.reset( new tth::thread( std::bind( &CExternalProcess::ThreadProcess, this, envLine ) ) );
 }
 
 void CExternalProcess::Stop()

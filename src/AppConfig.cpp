@@ -122,35 +122,35 @@ const std::string sSessionsArray = "Session definitions";
 const std::string sMonitorsArray = "Console definitions";
 const std::string sLoggersArray = "Logger definitions";
 
-const QVector<SNodeProperty> listHighNodes
+const ListNodesProperty listHighNodes
 {
-    {QString::fromStdString( sActivity ), 1, ETypeValue::ObjectValue},
-    {QString::fromStdString( sComponents ), 1, ETypeValue::ObjectValue}
+    {QString::fromStdString( sActivity ),   1, ETypeValue::ObjectValue, JO_CONST},
+    {QString::fromStdString( sComponents ), 1, ETypeValue::ObjectValue, JO_CONST}
 };
 
-const QVector<SNodeProperty> listActivityNodes
+const ListNodesProperty listActivityNodes
 {
-    {QString::fromStdString( sCurrentSet ), 1, ETypeValue::ObjectValue},
-    {QString::fromStdString( sApplication ), 0, ETypeValue::ObjectValue}
+    {QString::fromStdString( sCurrentSet ),  1, ETypeValue::ObjectValue, JO_CONST | JO_CURRENT_SESSION},
+    {QString::fromStdString( sApplication ), 0, ETypeValue::ObjectValue, JO_UNSPECIFIED}
 };
 
-const QVector<SNodeProperty> listComponents
+const ListNodesProperty listComponents
 {
-    {QString::fromStdString( sConnestion ), 1, ETypeValue::ObjectValue},
-    {QString::fromStdString( sSession ), 1, ETypeValue::ObjectValue},
-    {QString::fromStdString( sMonitors ), -1, ETypeValue::ObjectValue},
-    {QString::fromStdString( sLogger ), 1, ETypeValue::ObjectValue}
+    {QString::fromStdString( sConnestion ), 1, ETypeValue::ObjectValue, JO_APPEND | JO_CONNECTIONS | JO_LINKS},
+    {QString::fromStdString( sSession ),    1, ETypeValue::ObjectValue, JO_APPEND | JO_SESSIONS    | JO_LINKS},
+    {QString::fromStdString( sMonitors ),  -1, ETypeValue::ObjectValue, JO_APPEND | JO_MONITORS    | JO_LINKS},
+    {QString::fromStdString( sLogger ),     1, ETypeValue::ObjectValue, JO_APPEND | JO_LOGGERS     | JO_LINKS}
 };
 
-const QVector<SNodeProperty> listComponentDefinitions
+const ListNodesProperty listComponentDefinitions
 {
-    {QString::fromStdString( sConnestionsArray ), -1, ETypeValue::ArrajValue},
-    {QString::fromStdString( sSessionsArray ), -1, ETypeValue::ArrajValue},
-    {QString::fromStdString( sMonitorsArray ), -1, ETypeValue::ArrajValue},
-    {QString::fromStdString( sLoggersArray ), -1, ETypeValue::ArrajValue}
+    {QString::fromStdString( sConnestionsArray ), -1, ETypeValue::ArrajValue, JO_APPEND | JO_CONNECTIONS},
+    {QString::fromStdString( sSessionsArray ),    -1, ETypeValue::ArrajValue, JO_APPEND | JO_SESSIONS},
+    {QString::fromStdString( sMonitorsArray ),    -1, ETypeValue::ArrajValue, JO_APPEND | JO_MONITORS},
+    {QString::fromStdString( sLoggersArray ),     -1, ETypeValue::ArrajValue, JO_APPEND | JO_LOGGERS}
 };
 
-const QVector<SNodeProperty> listNodesEmpty;
+const ListNodesProperty listNodesEmpty;
 const std::string gsGeometryPath( sActivity + "." + sApplication + "." + "Geometry" );
 
 const SLoggerProperty defaultLogger
@@ -196,7 +196,7 @@ const SConnectionProperty defaultConnection
 }
 
 //////////////////////////////////////////////////////////////////////////
-CAppConfig::CAppConfig( const std::string& congName ) :
+CAppConfig::CAppConfig( std::string_view congName ) :
     CJsonConfig(congName)
 {
     CheckRequiredNodes();
@@ -215,8 +215,8 @@ void CAppConfig::SaveGeometry( const QByteArray& geometry )
 
 QByteArray CAppConfig::GetGeometry() const
 {
-    std::string value = GetValue<std::string>( gsGeometryPath );
-    return QByteArray::fromStdString( value );
+    top::optional<std::string> value = GetValue<std::string>( gsGeometryPath );
+    return QByteArray::fromStdString( value.has_value() ? value.get() : "" );
 }
 
 void CAppConfig::CheckRequiredNodes()
@@ -248,7 +248,7 @@ void CAppConfig::CheckRequiredNodes()
     Flush();
 }
 
-const QVector<SNodeProperty>& CAppConfig::GetListNodeProperties( const QString& parentName ) const
+const ListNodesProperty& CAppConfig::GetListNodesProperty( const QString& parentName ) const
 {
     if (parentName.isEmpty())
         return listHighNodes;
