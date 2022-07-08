@@ -7,7 +7,7 @@
 
 #include <source_location>
 
-namespace util::dex
+namespace tex
 {
 
 template<class _ExceptionType>

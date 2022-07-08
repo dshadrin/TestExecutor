@@ -2,6 +2,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+#include "AppConfig.h"
 #include "ui_AppConfig.h"
 #include <QDialog>
 
@@ -25,6 +26,13 @@ private:
     void InitDialog();
     void FillTreeNode(const QString& parentName = "", QTreeWidgetItem* parent = Q_NULLPTR);
     void SetDirty( bool isDirty ) { m_bDirty = isDirty; }
+
+    // Get node propertis methods does NOT check input parameter
+    // It is calling side responsibility
+    QString GetNodePath( const QTreeWidgetItem* node ) const;
+    quint32 GetNodeFlags( QTreeWidgetItem* node ) const;
+    qint32 GetNodeChildsMaxCount( QTreeWidgetItem* node ) const;
+    ETypeValue GetNodeType( QTreeWidgetItem* node ) const;
 
 private Q_SLOTS:
     void addNewProperty();

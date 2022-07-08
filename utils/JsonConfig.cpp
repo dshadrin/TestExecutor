@@ -1,6 +1,7 @@
 #include "StdInc.h"
 #include "JsonConfig.h"
 #include "utils/Exceptions.h"
+#include <json/json.h>
 #include <algorithm>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
@@ -113,7 +114,8 @@ const Json::Value nullValue;
 
 //////////////////////////////////////////////////////////////////////////
 CJsonConfig::CJsonConfig( const std::string_view congName ) :
-    m_fileName( congName )
+    m_fileName( congName ),
+    m_storage(new Json::Value())
 {
     Init();
 }
@@ -148,7 +150,7 @@ std::vector<std::string> CJsonConfig::SplitPathWithCheckEmpty( std::string_view 
     std::vector<std::string> v = SplitPath( path );
     if (v.size() == 0)
     {
-        util::dex::ThrowException<std::logic_error>(fmt::format( FMT_STRING( "Wrong json path {:s}" ), path ) );
+        tex::ThrowException<std::logic_error>( fmt::format( FMT_STRING( "Wrong json path {:s}" ), path ) );
     }
     return std::move( v );
 }
@@ -160,16 +162,27 @@ void CJsonConfig::Init()
     {
         std::ifstream cfgfile( m_fileName );
         Json::String errs;
-        bool ok = ReadFromStream(cfgfile, m_storage, errs);
+        bool ok = ReadFromStream(cfgfile, *m_storage.get(), errs);
         cfgfile.close();
         if (!ok)
         {
-            util::dex::ThrowException<std::logic_error>(fmt::format( FMT_STRING( "Error parsing configure file {:s}: {:s}" ), m_fileName, errs ) );
+            tex::ThrowException<std::logic_error>( fmt::format( FMT_STRING( "Error parsing configure file {:s}: {:s}" ), m_fileName, errs ) );
         }
     }
 }
 
-bool CJsonConfig::ReadFromStream(std::istream& is, Json::Value& jValue, Json::String& errs)
+Json::Value& CJsonConfig::Storage()
+{
+    return *(m_storage.get());
+}
+
+const Json::Value& CJsonConfig::Storage() const
+{
+    return *(m_storage.get());
+}
+
+
+bool CJsonConfig::ReadFromStream(std::istream& is, Json::Value& jValue, std::string& errs)
 {
     Json::CharReaderBuilder builder;
     builder["collectComments"] = true;
@@ -181,7 +194,7 @@ void CJsonConfig::Flush()
 {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
     std::ofstream ofs( m_fileName, std::fstream::trunc);
-    WriteToStream(ofs, m_storage);
+    WriteToStream(ofs, Storage());
     ofs.close();
 }
 
@@ -198,14 +211,14 @@ Json::Value& CJsonConfig::FindJsonValue( std::string_view path )
 {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
     std::vector<std::string> p = SplitPathWithCheckEmpty( path );
-    return ValueReference(m_storage, p, 0);
+    return ValueReference( Storage(), p, 0 );
 }
 
 top::optional<const Json::Value&> CJsonConfig::FindJsonValue( std::string_view path ) const
 {
     std::lock_guard<std::recursive_mutex> lock( m_mutex );
     std::vector<std::string> p = SplitPathWithCheckEmpty( path );
-    return ValueReference( m_storage, p, 0 );
+    return ValueReference( Storage(), p, 0 );
 }
 
 Json::Value& CJsonConfig::ValueReference(Json::Value& parent, const std::vector<std::string>& p, size_t idx)
@@ -213,7 +226,7 @@ Json::Value& CJsonConfig::ValueReference(Json::Value& parent, const std::vector<
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (idx >= p.size())
     {
-        util::dex::ThrowException<std::out_of_range>(fmt::format( FMT_STRING( "Index out of range: {:d}" ), idx ) );
+       tex::ThrowException<std::out_of_range>(fmt::format( FMT_STRING( "Index out of range: {:d}" ), idx ) );
     }
     Json::Value& val = parent[p[idx++]]; // NOTE: increase idx
     return (idx < p.size() ? ValueReference( val, p, idx ) : val);
@@ -224,7 +237,7 @@ top::optional<const Json::Value&> CJsonConfig::ValueReference( const Json::Value
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
     if (idx >= p.size())
     {
-        util::dex::ThrowException<std::out_of_range>(fmt::format( FMT_STRING( "Index out of range: {:d}" ), idx ) );
+       tex::ThrowException<std::out_of_range>(fmt::format( FMT_STRING( "Index out of range: {:d}" ), idx ) );
     }
     
     if (!parent.isMember( p[idx] ))
@@ -246,13 +259,13 @@ bool CJsonConfig::IsUndoAvailable() const
 void CJsonConfig::SaveCurrentPropertySet()
 {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    m_undo.push(m_storage);
+    m_undo.emplace( new Json::Value( Storage() ) );
 }
 
 void CJsonConfig::Undo()
 {
-    std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    m_storage = m_undo.top();
+    std::lock_guard<std::recursive_mutex> lock( m_mutex );
+    m_storage.swap( m_undo.top() );
     m_undo.pop();
     Flush();
 }
@@ -260,6 +273,132 @@ void CJsonConfig::Undo()
 void CJsonConfig::ClearUndo()
 {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    std::stack<Json::Value> emptyStack;
+    std::stack<std::unique_ptr<Json::Value>> emptyStack;
     m_undo.swap(emptyStack);
+}
+
+uint64_t CJsonConfig::ToUInt( const Json::Value& jv )
+{
+    return jv.asUInt64();
+}
+
+int64_t CJsonConfig::ToInt( const Json::Value& jv )
+{
+    return jv.asInt64();
+}
+
+float CJsonConfig::ToFloat( const Json::Value& jv )
+{
+    return jv.asFloat();
+}
+
+double CJsonConfig::ToDouble( const Json::Value& jv )
+{
+    return jv.asDouble();
+}
+
+std::string CJsonConfig::ToString( const Json::Value& jv )
+{
+    return jv.asString();
+}
+
+bool CJsonConfig::ToBool( const Json::Value& jv )
+{
+    return jv.asBool();
+}
+
+bool CJsonConfig::IsNull( const Json::Value& jv )
+{
+    return jv.isNull();
+}
+
+bool CJsonConfig::Empty( const Json::Value& jv )
+{
+    return jv.empty();
+}
+
+bool CJsonConfig::IsArray( const Json::Value& jv )
+{
+    return jv.isArray();
+}
+
+bool CJsonConfig::IsObject( const Json::Value& jv )
+{
+    return jv.isObject();
+}
+
+std::vector<std::string> CJsonConfig::GetMemberNames( const Json::Value& jv )
+{
+    return jv.getMemberNames();
+}
+
+size_t CJsonConfig::Size( const Json::Value& jv )
+{
+    return jv.size();
+}
+
+const Json::Value& CJsonConfig::At( const Json::Value& jv, unsigned idx )
+{
+    return jv[idx];
+}
+
+bool CJsonConfig::IsTextJsonArray( const std::string& text )
+{
+    Json::Value value;
+    std::istringstream iss( text );
+    std::string errs;
+    bool status = CJsonConfig::ReadFromStream( iss, value, errs );
+    if (status && !value.isArray())
+    {
+        status = false;
+    }
+    return status;
+}
+
+bool CJsonConfig::IsTextJsonObject( const std::string& text )
+{
+    Json::Value value;
+    std::istringstream iss( text );
+    std::string errs;
+    bool status = CJsonConfig::ReadFromStream( iss, value, errs );
+    if (status && !value.isObject())
+    {
+        status = false;
+    }
+    return status;
+}
+
+void CJsonConfig::Assign( Json::Value& jv, uint64_t val )
+{
+    jv = val;
+}
+
+void CJsonConfig::Assign( Json::Value& jv, int64_t val )
+{
+    jv = val;
+}
+
+void CJsonConfig::Assign( Json::Value& jv, float val )
+{
+    jv = val;
+}
+
+void CJsonConfig::Assign( Json::Value& jv, double val )
+{
+    jv = val;
+}
+
+void CJsonConfig::Assign( Json::Value& jv, const std::string& val )
+{
+    jv = val;
+}
+
+void CJsonConfig::Assign( Json::Value& jv, bool val )
+{
+    jv = val;
+}
+
+void Assign( Json::Value& jv, const Json::Value& val )
+{
+    jv = val;
 }

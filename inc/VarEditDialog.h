@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "ui_VarEdit.h"
-#include "Common.h"
+#include "AppConfig.h"
 #include <QDialog>
 
 

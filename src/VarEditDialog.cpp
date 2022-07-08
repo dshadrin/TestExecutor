@@ -112,7 +112,7 @@ void CVarEditor::changedType( int index )
 
 void CVarEditor::checkValue( const QString& text )
 {
-    bool check = util::CheckStringValue( text, m_currentStrType );
+    bool check = CAppConfig::CheckStringValue( text, m_currentStrType );
     if (check)
     {
         uiVarEdit.lineEditValue->setStyleSheet( QString::fromUtf8( "background-color: rgb(85, 255, 127);" ) );

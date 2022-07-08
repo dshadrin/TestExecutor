@@ -1,126 +1,29 @@
 #include "AppConfig.h"
+#include "utils/Exceptions.h"
+#include <QRegularExpression>
+#include <boost/describe.hpp>
 
 //////////////////////////////////////////////////////////////////////////
 IMPLEMENT_MODULE_TAG( CAppConfig, "CONF" );
 
 //////////////////////////////////////////////////////////////////////////
-// Application config structure (example)
-//////////////////////////////////////////////////////////////////////////
-
-//const size_t TI_NAME = 0;
-//const size_t TI_MAIN_OBJ_FLAG = 1;
-//const size_t TI_LINK_OBJ_FLAG = 2;
-//
-//const std::tuple<std::string, uint32_t> CJsonConfig::s_rootConfigNode
-//{
-//    "Configuration", JO_CONST
-//};
-//
-//const std::vector<std::tuple<std::string, uint32_t>> CJsonConfig::s_vMainConfObjects
-//{
-//    {KEY_CURRENT_SESSION,         JO_CONST  | JO_CURRENT_SESSION},
-//    {KEY_DEFINED_SESSIONS,        JO_APPEND | JO_SESSIONS       },
-//    {KEY_DEFINED_MONITORS,        JO_APPEND | JO_MONITORS       },
-//    {KEY_DEFINED_LOGGERS,         JO_APPEND | JO_LOGGERS        },
-//    {KEY_DEFINED_CONNECTIONS,     JO_APPEND | JO_CONNECTIONS    }
-//};
-//
-//const std::vector<std::tuple<std::string, ETypeValue, uint32_t>> CJsonConfig::s_vCurrentSessionConfObjects
-//{
-//    {KEY_SELECTED_SESSION,    ETypeValue::arraj_value, JO_APPEND | JO_SESSIONS    | JO_LINKS   },
-//    {KEY_SELECTED_MONITORS,   ETypeValue::arraj_value, JO_APPEND | JO_MONITORS    | JO_LINKS   },
-//    {KEY_SELECTED_LOGGER,     ETypeValue::arraj_value, JO_APPEND | JO_LOGGERS     | JO_LINKS   },
-//    {KEY_SELECTED_CONNECTION, ETypeValue::arraj_value, JO_APPEND | JO_CONNECTIONS | JO_LINKS}
-//};
-//
-//const VectorValues g_loggerTemplate
-//{
-//    { "name",                "TestExecutor log", "STRING"  },
-//    { "host",                "localhost",        "STRING"  },
-//    { "port",                "2100",             "INTEGER" },
-//    { "retry",               "5",                "INTEGER" },
-//    { "max_message_size",    "2048",             "INTEGER" },
-//    { "module_tag_size",     "4",                "INTEGER" },
-//    { "severity",            "DEBUG",            "STRING"  },
-//    { "bg-color",            "lightGray",        "STRING"  },
-//    { "text-color",          "darkBlue",         "STRING"  },
-//    { "font-name",           "Courier New",      "STRING"  },
-//    { "font-weight",         "10",               "INTEGER" }
-//};
-//
-//const VectorValues g_monitorTemplate
-//{
-//    { "name",                "RTOS camera monitor", "STRING"  },
-//    { "connection-string",   "localhost:2002",      "STRING"  },
-//    { "font-name",           "Lucida Console",      "STRING"  },
-//    { "font-weight",         "9",                   "INTEGER" },
-//    { "bg-color",            "lightGray",           "STRING"  },
-//    { "cmd-text-color",      "darkBlue",            "STRING"  },
-//    { "camera-text-color",   "darkBlue",            "STRING"  }
-//};
-//
-//const VectorValues g_connectionTemplate
-//{
-//    { "name",                "Local environment execution", "STRING"  },
-//    { "is-remote-location",  "false",                       "BOOLEAN" },
-//    { "host",                "",                            "STRING"  },
-//    { "port",                "22",                          "INTEGER" },
-//    { "password",            "",                            "STRING"  },
-//    { "private-key-file",    "",                            "STRING"  }
-//};
-//
-//const VectorValues g_sessionTemplate
-//{
-//    { "execution-file",      "", "STRING" },
-//    { "command-line",        "", "STRING" },
-//    { "environment",         "[]", "ARRAY"}
-//};
-//
-//const VectorValues g_emptyTemplate {};
-//
-//const size_t TI_FLAG = 0;
-//const size_t TI_UNIT_NAME = 1;
-//const size_t TI_MULTIPLE = 2;
-//const size_t TI_TEMPLATE = 3;
-//
-//const std::vector<std::tuple<uint32_t, std::string, bool, const VectorValues&>> CJsonConfig::s_vFlagToUnit
-//{
-//    {JO_SESSIONS,    "Session",     false, g_sessionTemplate   },
-//    {JO_MONITORS,    "Monitor",     true,  g_monitorTemplate   },
-//    {JO_LOGGERS,     "Logger",      false, g_loggerTemplate    },
-//    {JO_CONNECTIONS, "Connection",  false, g_connectionTemplate}
-//};
-//
-//const std::vector<SValueType> g_mapStrToKind
-//{
-//    {"BOOLEAN",     Json::ValueType::booleanValue, ETypeValue::boolean_value},
-//    {"INTEGER",     Json::ValueType::intValue,     ETypeValue::integer_number},
-//    {"UNSIGNED",    Json::ValueType::uintValue,    ETypeValue::unsigned_number},
-//    {"DOUBLE",      Json::ValueType::realValue,    ETypeValue::float_number},
-//    {"STRING",      Json::ValueType::stringValue,  ETypeValue::string_value},
-//    {"HEXSTRING",   Json::ValueType::stringValue,  ETypeValue::hex_number},
-//    {"ARRAY",       Json::ValueType::arrayValue,   ETypeValue::arraj_value},
-//    {"OBJECT",      Json::ValueType::objectValue,  ETypeValue::object_value},
-//    {"LINK",        Json::ValueType::stringValue,  ETypeValue::link}
-//};
-
-//////////////////////////////////////////////////////////////////////////
-// constants
+// Application config structure
 //////////////////////////////////////////////////////////////////////////
 namespace
 {
+const std::string sDefinitions = " definitions";
 const std::string sActivity = "Activity";
 const std::string sComponents = "Components";
 const std::string sCurrentSet = "CurrentSet";
 const std::string sApplication = "Application";
-const std::string sConnestion = "Connection";
+const std::string sConnection = "Connection";
 const std::string sSession = "Session";
-const std::string sMonitors = "Application";
+const std::string sMonitors = "Console";
 const std::string sLogger = "Logger";
-const std::string sConnestionsArray = "Connection definitions";
-const std::string sSessionsArray = "Session definitions";
-const std::string sMonitorsArray = "Console definitions";
-const std::string sLoggersArray = "Logger definitions";
+const std::string sConnectionsArray = sConnection + sDefinitions;
+const std::string sSessionsArray = sSession + sDefinitions;
+const std::string sMonitorsArray = sMonitors + sDefinitions;
+const std::string sLoggersArray = sLogger + sDefinitions;
 
 const ListNodesProperty listHighNodes
 {
@@ -131,23 +34,23 @@ const ListNodesProperty listHighNodes
 const ListNodesProperty listActivityNodes
 {
     {QString::fromStdString( sCurrentSet ),  1, ETypeValue::ObjectValue, JO_CONST | JO_CURRENT_SESSION},
-    {QString::fromStdString( sApplication ), 0, ETypeValue::ObjectValue, JO_UNSPECIFIED}
+    {QString::fromStdString( sApplication ), 0, ETypeValue::ObjectValue, JO_APPLICATION}
 };
 
-const ListNodesProperty listComponents
+const ListNodesProperty listComponents // strings arrays
 {
-    {QString::fromStdString( sConnestion ), 1, ETypeValue::ObjectValue, JO_APPEND | JO_CONNECTIONS | JO_LINKS},
-    {QString::fromStdString( sSession ),    1, ETypeValue::ObjectValue, JO_APPEND | JO_SESSIONS    | JO_LINKS},
+    {QString::fromStdString( sConnection ), 1, ETypeValue::ObjectValue, JO_APPEND | JO_CONNECTIONS | JO_LINKS | JO_REQUIRED},
+    {QString::fromStdString( sSession ),    1, ETypeValue::ObjectValue, JO_APPEND | JO_SESSIONS    | JO_LINKS | JO_REQUIRED},
     {QString::fromStdString( sMonitors ),  -1, ETypeValue::ObjectValue, JO_APPEND | JO_MONITORS    | JO_LINKS},
-    {QString::fromStdString( sLogger ),     1, ETypeValue::ObjectValue, JO_APPEND | JO_LOGGERS     | JO_LINKS}
+    {QString::fromStdString( sLogger ),     1, ETypeValue::ObjectValue, JO_APPEND | JO_LOGGERS     | JO_LINKS | JO_REQUIRED}
 };
 
-const ListNodesProperty listComponentDefinitions
+const ListNodesProperty listComponentDefinitions // objects set
 {
-    {QString::fromStdString( sConnestionsArray ), -1, ETypeValue::ArrajValue, JO_APPEND | JO_CONNECTIONS},
-    {QString::fromStdString( sSessionsArray ),    -1, ETypeValue::ArrajValue, JO_APPEND | JO_SESSIONS},
+    {QString::fromStdString( sConnectionsArray ), -1, ETypeValue::ArrajValue, JO_APPEND | JO_CONNECTIONS | JO_REQUIRED},
+    {QString::fromStdString( sSessionsArray ),    -1, ETypeValue::ArrajValue, JO_APPEND | JO_SESSIONS    | JO_REQUIRED},
     {QString::fromStdString( sMonitorsArray ),    -1, ETypeValue::ArrajValue, JO_APPEND | JO_MONITORS},
-    {QString::fromStdString( sLoggersArray ),     -1, ETypeValue::ArrajValue, JO_APPEND | JO_LOGGERS}
+    {QString::fromStdString( sLoggersArray ),     -1, ETypeValue::ArrajValue, JO_APPEND | JO_LOGGERS     | JO_REQUIRED}
 };
 
 const ListNodesProperty listNodesEmpty;
@@ -155,7 +58,7 @@ const std::string gsGeometryPath( sActivity + "." + sApplication + "." + "Geomet
 
 const SLoggerProperty defaultLogger
 {
-    "TestExecutor log",
+    // "TestExecutor log",
     "localhost",
     2100,
     5,
@@ -170,7 +73,7 @@ const SLoggerProperty defaultLogger
 
 const SMonitorProperty defaultMonitor
 {
-    "RTOS camera monitor",
+    // "RTOS camera monitor",
     "localhost",
     2002,
     "lightGray",
@@ -182,7 +85,7 @@ const SMonitorProperty defaultMonitor
 
 const SSessionProperty defaultSession
 {
-    "Project name",
+    // "Project name",
     "test_app.exe",
     "-ln",
     "[]"
@@ -190,8 +93,61 @@ const SSessionProperty defaultSession
 
 const SConnectionProperty defaultConnection
 {
-    "Local"
+    // "Local"
+    false
 };
+
+static const std::vector<QString> g_boolFalseValus
+{
+    "false",
+    "manual",
+    "off"
+};
+
+static const std::vector<QString> g_boolTrueValus
+{
+    "true",
+    "auto",
+    "on"
+};
+
+bool IsFalseTextValue( const QString& text )
+{
+    return std::find( g_boolFalseValus.cbegin(), g_boolFalseValus.cend(), text.toLower() ) != g_boolFalseValus.cend();
+}
+
+bool IsTrueTextValue( const QString& text )
+{
+    return std::find( g_boolTrueValus.cbegin(), g_boolTrueValus.cend(), text.toLower() ) != g_boolTrueValus.cend();
+}
+
+bool IsTextFloatNumber( const QString& text )
+{
+    QRegularExpression expr { R"(^[+-]{0,1}\d+\.{0,1}\d*([eE]{1}[+-]{0,1}\d+){0,1}$)" };
+    QRegularExpressionMatch match = expr.match( text );
+    return match.captured( 0 ) == text;
+}
+
+bool IsTextHexNumber( const QString& text )
+{
+    QRegularExpression expr { R"(^[[:xdigit:]]+$)" };
+    QRegularExpressionMatch match = expr.match( text );
+    return match.captured( 0 ) == text;
+}
+
+bool IsTextUnsignedInteger( const QString& text )
+{
+    QRegularExpression expr { R"(^+{0,1}[[:digit:]]+$)" };
+    QRegularExpressionMatch match = expr.match( text );
+    return match.captured( 0 ) == text;
+}
+
+bool IsTextInteger( const QString& text )
+{
+    QRegularExpression expr { R"(^[+-]{0,1}[[:digit:]]+$)" };
+    QRegularExpressionMatch match = expr.match( text );
+    return match.captured( 0 ) == text;
+}
 
 }
 
@@ -222,33 +178,33 @@ QByteArray CAppConfig::GetGeometry() const
 void CAppConfig::CheckRequiredNodes()
 {
     // high level
-    for (auto& n : listHighNodes)
+    rng::for_each( listHighNodes, [this]( const auto& n )
     {
-        auto p = FindJsonValue( n.name.toStdString() );
-    }
+        FindJsonValue( n.name.toStdString() );
+    } );
 
     // activity
-    for (auto& n : listActivityNodes)
+    rng::for_each( listActivityNodes, [this]( const auto& n )
     {
-        auto p = FindJsonValue( sActivity + "." + n.name.toStdString());
-    }
+        FindJsonValue( sActivity + "." + n.name.toStdString() );
+    } );
 
     // activity current set components
-    for (auto& n : listComponents)
+    rng::for_each( listComponents, [this]( const auto& n )
     {
-        auto p = FindJsonValue( sActivity + "." + sCurrentSet + "." + n.name.toStdString() );
-    }
+        FindJsonValue( sActivity + "." + sCurrentSet + "." + n.name.toStdString() );
+    } );
 
     // components
-    for (auto& n : listComponentDefinitions)
+    rng::for_each( listComponentDefinitions, [this]( const auto& n )
     {
-        auto p = FindJsonValue( sComponents + "." + n.name.toStdString() );
-    }
+        FindJsonValue( sComponents + "." + n.name.toStdString() );
+    } );
 
     Flush();
 }
 
-const ListNodesProperty& CAppConfig::GetListNodesProperty( const QString& parentName ) const
+const ListNodesProperty& CAppConfig::GetListMainNodes( const QString& parentName ) const
 {
     if (parentName.isEmpty())
         return listHighNodes;
@@ -263,4 +219,100 @@ const ListNodesProperty& CAppConfig::GetListNodesProperty( const QString& parent
         return listComponentDefinitions;
 
     return listNodesEmpty;
+}
+
+ListNodesProperty CAppConfig::GetListPropertyNodes( const QString& path, quint32 mask ) const
+{
+    ListNodesProperty props;
+    if (!path.isEmpty())
+    {
+        top::optional<const Json::Value&> nodeOp = FindJsonValue( path.toStdString() );
+        if (nodeOp.has_value() && !IsNull( nodeOp.get() ) && !Empty( nodeOp.get() ) && (mask & JO_APPEND))
+        {
+            auto fillProp = [&props, mask]( const std::string& name ) -> void
+            {
+                SNodeProperty prop {
+                    .name = QString::fromStdString( name ),
+                    .maxCount = 0,
+                    .type = ETypeValue::ObjectValue,
+                    .mask = mask & JO_COMPONENT_MASK
+                };
+                
+                if (mask & JO_LINKS)
+                {
+                    prop.mask |= JO_LINKS;
+                    prop.type = ETypeValue::LinkValue;
+                }
+                props.append( prop );
+            };
+            
+            const Json::Value& node = nodeOp.get();
+            if (IsArray( node ) && (mask & JO_LINKS) != 0) // component links
+            {
+                unsigned count = Size( node );
+                for (unsigned i : rng::views::iota( 0u, count ))
+                {
+                    fillProp( ToString( At( node, i ) ) );
+                }
+            }
+            else if (IsObject( node )) // components set
+            {
+                auto names = GetMemberNames( node );
+                rng::for_each( names, fillProp );
+            }
+        }
+    }
+    return props;
+}
+
+ETypeValue CAppConfig::TypeFromString( const QString& str )
+{
+    ETypeValue val;
+    bool status = boost::describe::enum_from_string( str.toStdString().c_str(), val );
+    if (!status)
+    {
+        tex::ThrowException<std::logic_error>( fmt::format( FMT_STRING( "Error convert {:s} to ETypeValue" ), str.toStdString() ) );
+    }
+    return val;
+}
+
+QString CAppConfig::TypeToString( ETypeValue val )
+{
+    std::string def = "(unnamed" + std::to_string( static_cast<std::underlying_type_t<ETypeValue>>(val) ) + ")";
+    return boost::describe::enum_to_string( val, def.c_str() );
+}
+
+bool CAppConfig::CheckStringValue( const QString& text, ETypeValue type )
+{
+    bool status = true;
+    switch (type)
+    {
+    case ETypeValue::NullValue:
+        status = text.isNull();
+        break;
+    case ETypeValue::BooleanValue:
+        status = (IsFalseTextValue( text ) || IsTrueTextValue( text ));
+        break;
+    case ETypeValue::FloatValue:
+        status = IsTextFloatNumber( text );
+        break;
+    case ETypeValue::HexNumberString:
+        status = IsTextHexNumber( text );
+        break;
+    case ETypeValue::IntegerValue:
+        status = IsTextInteger( text );
+        break;
+    case ETypeValue::UnsignedValue:
+        status = IsTextUnsignedInteger( text );
+        break;
+    case ETypeValue::ArrajValue:
+        status = CJsonConfig::IsTextJsonArray( text.toStdString() );
+        break;
+    case ETypeValue::ObjectValue:
+        status = CJsonConfig::IsTextJsonObject( text.toStdString() );
+        break;
+    case ETypeValue::StringValue:      // always true
+    default:;
+    }
+    return status;
 }

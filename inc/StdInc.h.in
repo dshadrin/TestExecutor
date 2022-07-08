@@ -21,6 +21,7 @@
 #cmakedefine HAVE_STD_CHRONO
 #cmakedefine HAVE_STD_FORMAT
 #cmakedefine HAVE_STD_OPTIONAL
+#cmakedefine HAVE_STD_RANGE
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -91,6 +92,15 @@ namespace top = std;
 #else
 #include <boost/optional.hpp>
 namespace top = boost;
+#endif
+
+#ifdef HAVE_STD_RANGE
+#include <ranges>
+namespace rng = std::ranges;
+namespace view = rng::views;
+#else
+#include <boost/range.hpp>
+// NOTE! look boost lib moore different by interfaces. needs check
 #endif
 
 #include <boost/algorithm/string.hpp>

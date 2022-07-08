@@ -1,5 +1,4 @@
 #include "AppConfigDialog.h"
-#include "AppConfig.h"
 #include "utils/Exceptions.h"
 #include <QCloseEvent>
 #include <QMenu>
@@ -111,28 +110,9 @@ CAppConfigDialog::~CAppConfigDialog()
 
 void CAppConfigDialog::InitDialog()
 {
-        m_config.SaveCurrentPropertySet();
-
-        // fill object tree
-/*
-        const Json::Value& jRoot = const_cast<const CJsonConfig*>(m_pConfig)->GetSettings();
-
-        QTreeWidgetItem* currentItem = new QTreeWidgetItem( (QTreeWidget*)nullptr,
-                                                            QStringList { CJsonConfig::GetRootNodeName(),
-                                                                          QString().asprintf( "%04X", CJsonConfig::GetNodeFlagsByName( CJsonConfig::GetRootNodeName() ) ) } );
-*/
-        FillTreeNode();
-/*
-        QList<QTreeWidgetItem*> items { currentItem };
-
-        uiConf.treeObjectsWidget->insertTopLevelItems( TREE_VALUE_COLUMN, items );
-        uiConf.treeObjectsWidget->setCurrentItem( currentItem );
-
-        FillTableProperties();
-*/
+    FillTreeNode();
     uiConf.treeObjectsWidget->expandAll();
     uiConf.treeObjectsWidget->sortByColumn( TREE_FLAGS_COLUMN, Qt::SortOrder::AscendingOrder );
-
     SetDirty( false );
 }
 
@@ -140,32 +120,73 @@ void CAppConfigDialog::FillTreeNode(const QString& parentName, QTreeWidgetItem* 
 {
     QVector<QTreeWidgetItem*> items;
 
-    ListNodesProperty nodes = m_config.GetListNodesProperty( parentName );
-    for (const auto& node : nodes)
+    ListNodesProperty nodes = m_config.GetListMainNodes( parentName );
+    if (nodes.isEmpty())
     {
-        QTreeWidgetItem* item = new QTreeWidgetItem( parent, QStringList { node.name, QString().asprintf( "%04X", node.mask ) } );
+        auto mask = GetNodeFlags( parent );
+        if (mask & JO_APPEND)
+        {
+            nodes = m_config.GetListPropertyNodes( GetNodePath( parent ), mask );
+        }
+    }
+    
+    rng::for_each( nodes, [&]( const auto& node ) -> void
+    {
+        QTreeWidgetItem* item = new QTreeWidgetItem( parent, QStringList { node.name, QString::asprintf( "%04X", node.mask ) } );
         if (!item)
         {
-            util::dex::ThrowException<std::runtime_error>( fmt::format( FMT_STRING( "Error memory allocation for {:s} QTreeWidgetItem" ), node.name.toStdString() ) );
+            tex::ThrowException<std::runtime_error>( fmt::format( FMT_STRING( "Error memory allocation for {:s} QTreeWidgetItem" ), node.name.toStdString() ) );
         }
         item->setData( TREE_VALUE_COLUMN, Qt::UserRole, QVariant::fromValue( node.maxCount ) );
         item->setData( TREE_FLAGS_COLUMN, Qt::UserRole, QVariant::fromValue( node.type ) );
-        if (parentName.isEmpty())
-        {
-            items.append( item );
-        }
-        else
-        {
-            parent->addChild( item );
-        }
+        (parentName.isEmpty())
+            ? items.append( item )
+            : parent->addChild( item );
         FillTreeNode( node.name, item );
-    }
+    } );
 
     if (parentName.isEmpty())
     {
         uiConf.treeObjectsWidget->insertTopLevelItems( TREE_VALUE_COLUMN, items );
         uiConf.treeObjectsWidget->setCurrentItem( items.at( 0 ) );
     }
+}
+
+QString CAppConfigDialog::GetNodePath( const QTreeWidgetItem* node ) const
+{
+    QString result;
+    if (node != Q_NULLPTR)
+    {
+        result = node->text( TREE_VALUE_COLUMN );
+        const QTreeWidgetItem* item = node->parent();
+        while (item != nullptr)
+        {
+            result.insert( 0, '.' );
+            result.insert( 0, item->text( TREE_VALUE_COLUMN ) );
+            item = item->parent();
+        }
+    }
+    return result;
+}
+
+quint32 CAppConfigDialog::GetNodeFlags( QTreeWidgetItem* node ) const
+{
+    bool ok = false;
+    uint32_t flags = node ? node->text( TREE_FLAGS_COLUMN ).toUInt( &ok, HEX_BASE ) : 0;
+    return ok ? flags : JO_UNSPECIFIED;
+}
+
+qint32 CAppConfigDialog::GetNodeChildsMaxCount( QTreeWidgetItem* node ) const
+{
+    bool ok = false;
+    qint32 maxCount = node->data( TREE_VALUE_COLUMN, Qt::UserRole ).toInt( &ok );
+    return ok ? maxCount : 0;
+}
+
+ETypeValue CAppConfigDialog::GetNodeType( QTreeWidgetItem* node ) const
+{
+    QVariant qv = node->data( TREE_FLAGS_COLUMN, Qt::UserRole );
+    return qv.isValid() ? qvariant_cast<ETypeValue>(qv) : ETypeValue::NullValue;
 }
 
 void CAppConfigDialog::closeEvent( QCloseEvent* event )
